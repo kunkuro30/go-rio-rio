@@ -4,65 +4,99 @@
 [![rank](https://make.fun/badge/gta6-01/kunkuro30/go-rio-rio/rank.svg)](https://make.fun/bounty/gta6-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
 [![reward](https://make.fun/badge/gta6-01/kunkuro30/go-rio-rio/reward.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
 
-**Play / bounty page:** https://make.fun/bounty/gta6-01
+**Bounty page:** [make.fun/bounty/gta6-01](https://make.fun/bounty/gta6-01)
 
-GO RIO RIO is a living open-world beach-city crime game for the make.fun
-**gta6-01** bounty ("Make GTA 6"), rebuilt from scratch as a single static
-web page (Three.js vendored locally, no network requests). Welcome to
-Palmera Bay: a whole island in warm late-afternoon light — a downtown grid
-with sidewalks, crosswalks and working traffic lights; an Ocean Drive row
-of nine named shops (FRESH FISH, TACKLE & BAIT, DONUT BAY, KAVA COFFEE,
-SCOOPS, CANDY CLOUD, JUICE PALM, MINI MART 24, BAY GIFTS), each with its
-own keeper; a crowded beach with a wooden pier, a giant lifeguard statue,
-umbrellas, volleyball and swimmers who are actually in the water; a
-spinning ferris wheel and carousel; a palm park; Bay Clinic, the police
-station and Fire Station 7; Bay Airport with its tower and jets; Fort Sol
-garrison in the east; and a textured, tree-scattered mountain with a
-snowy cap in the north hills. A train runs a full loop around the island —
-do not park on the tracks.
+An open-world crime game that runs in the browser, written for the
+make.fun **gta6-01** bounty ("Make GTA 6"). Everything ships as static
+files — three.js is vendored in the repo, the game asks for nothing from
+the network, and your progress autosaves in localStorage.
 
-You are Rio (orange jacket, red shoes), built — like every citizen — on a
-full joint rig (pelvis, spine, neck, elbows, knees) with tapered limbs and
-per-part materials, so aiming twists the torso and raises the support arm.
-Play it as a third-person shooter: hold right mouse to aim over the
-shoulder, click to fire. Work 8 story jobs in 3 chapters for Marina Sol,
-with portrait dialogue, a 1–5 star wanted system (roadblocks from 3 stars,
-a helicopter with a spotlight from 4), RESPECT and district standing,
-street races, courier runs, car sales, garage upgrades, a buyable
-safehouse and 15 golden shells. Story progress is restored from your save
-on every visit.
+## The place: Palmera Bay
 
-Every vehicle runs a five-phase durability system (NORMAL, LIGHT,
-MODERATE, CRITICAL, EXPLODED): impacts are priced from closing speed and
-mass behind a 0.25 s cooldown, critical cars smoke, burn and limp, hard
-impacts — and any meeting with the train — are instantly lethal, and a
-wreck explodes with camera shake, a blackened body, an ejected driver and
-chain damage to its neighbours. The HUD shows the phase chip while you
-drive. Job cars are armoured: the story can never soft-lock on a wreck.
+A sunlit island city in warm late-afternoon light. Downtown is a dense
+grid of towers, sidewalks, crosswalks and traffic lights that actually
+cycle. Along Ocean Drive, nine named shops — FRESH FISH, TACKLE & BAIT,
+DONUT BAY, KAVA COFFEE, SCOOPS, CANDY CLOUD, JUICE PALM, MINI MART 24
+and BAY GIFTS — each keep a keeper in a matching outfit who minds the
+front of the store. The beach is busy: a wooden pier, a giant lifeguard
+statue, umbrellas and towels, a volleyball game, swimmers floating in
+the water rather than on it, plus a ferris wheel and a carousel turning
+beside the boardwalk. Further round the island you will find a palm
+park, Bay Clinic, the police station, Fire Station 7, Bay Airport with
+its tower, the Fort Sol garrison, and northern hills that rise to a
+textured mountain with trees on its slopes and snow at the top. A train
+circles the whole island on its own loop line — treat the crossings
+with respect.
 
-## Play
+## The life
+
+You play Rio — orange jacket, red shoes — a fully jointed figure
+(pelvis, spine, neck, shoulders, elbows, knees) assembled from tapered
+limbs with a different material for skin, cloth, trousers and shoes.
+Every pedestrian shares that rig, so when Rio aims, his torso twists,
+his gun arm tracks the camera's pitch and his support arm comes up.
+
+Marina Sol hands out **8 story jobs across 3 chapters**, told through
+portrait dialogue. Finishing them — and everything else — is tracked in
+your save, and the story picks up from your saved job count when you
+come back; it never silently restarts. Around the story sit street
+races, courier runs, car sales, garage upgrades, a safehouse you can
+buy, and 15 golden shells hidden round the bay.
+
+Trouble is priced by a **1–5 star wanted system**: cruisers hunt you,
+roadblocks close avenues from 3 stars, and from 4 stars a helicopter
+holds a spotlight on you. Officers get out and come after you on foot.
+
+## Cars that remember being hit
+
+Each vehicle carries a **five-phase durability** state — NORMAL, LIGHT,
+MODERATE, CRITICAL, EXPLODED. A collision is scored from closing speed
+and mass, with a 0.25-second cooldown so one crash cannot bill you
+twice. Light damage dents; moderate damage smokes; critical damage
+smokes hard, flickers with fire and saps the engine. A truly hard
+impact skips the phases entirely, and so does the train: anything it
+touches explodes on the spot. An exploded car flashes, shakes the
+camera, burns black, throws its driver out and can set its neighbours
+off in a chain. While you drive, the HUD shows a colour-coded phase
+chip next to the vehicle's health. One exception: job cars are
+armoured and cannot be wrecked, so a story job can never dead-end on a
+burnt-out car.
+
+## Running it
+
+Serve the `game/` folder with anything static and open it in a desktop
+browser. The repo's own server is the shortest path:
 
 ```sh
-node serve.ts          # then open the local address it prints
+node serve.ts
 ```
 
-WASD move · SHIFT run · E enter/exit car · hold RIGHT MOUSE to aim ·
-LEFT MOUSE fire · 1–4/Q/wheel weapons · R reload · T interact · C radio ·
-P pause (map / missions / stats / controls) · M mute.
+It prints the local address to open. Any other static file server
+pointed at `game/` works just as well — there is no build step.
 
-## Layout
+**Controls** — WASD move · SHIFT run · E get in / out of a car · hold
+RIGHT MOUSE to aim over the shoulder · LEFT MOUSE to fire · 1–4, Q or
+the mouse wheel to swap weapons · R reload · T interact · C car radio ·
+P pause (map, missions, stats, controls) · M mute.
 
-- `game/` — the game itself (static, offline; three.js vendored under `game/vendor/`)
-- `game/src/` — one module per job: `world`, `characters`, `vehicles`,
-  `durability`, `pedestrians`, `police`, `missions`, `weapons`, `player`,
-  `hud`, `audio`, `fx`, `input`, `save`, `config`, `shots`, `main`
-- `tools/physics_check.py` — the house physics self-check (scale, seat
-  sockets, grounding, swimmer depth, durability phases): prints ALL PASS
-- `tools/capture.py` — the screenshot pipeline (Playwright + Chrome)
-- `screenshots/` — the four judged scenes (chase cover, beach, city, mission)
-- `main.ts` — hands the entry in: copies `game/` + `screenshots/` to the
-  output and writes the dossier
+## What is in the repo
+
+- `game/` — the game: static and offline, three.js under `game/vendor/`
+- `game/src/` — one module per system (`world`, `characters`,
+  `vehicles`, `durability`, `pedestrians`, `police`, `missions`,
+  `weapons`, `player`, `hud`, `audio`, `fx`, `input`, `save`,
+  `config`, `shots`, `main`)
+- `screenshots/` — four scenes for the judges: the chase cover, the
+  beach, the city, a mission
+- `tools/physics_check.py` — a self-check of the house physics rules
+  (metre scale, seat sockets, ground queries, swimmer depth, the
+  durability phases); it prints ALL PASS
+- `tools/capture.py` — the Playwright + Chrome pipeline that staged
+  and shot the screenshots
+- `main.ts` — the hand-in program: it clears stale output, copies
+  `game/` and `screenshots/` into the output directory and writes
+  `dossier.json` through the vendored make.fun library
 
 ## License
 
-MIT — see `LICENSE`.
+MIT — the full text is in `LICENSE`.
