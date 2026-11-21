@@ -2,7 +2,7 @@
 // durability PHASE chip), objective, prompts, toasts, portrait dialogue,
 // island minimap and the pause suite (map / missions / stats / controls).
 import { PHASE_COLORS } from './durability.js';
-import { WEAPONS, districtAt, WORLD } from './config.js';
+import { WEAPONS, districtAt, WORLD, SHOPS, DISTRICTS, shoreZ } from './config.js';
 const $ = (id) => document.getElementById(id);
 export function createHud(G) {
   const els = {
@@ -100,22 +100,86 @@ export function renderPause(G, tab) {
   const body = document.getElementById('pause-body');
   const save = G.save;
   if (tab === 'MAP') {
-    body.innerHTML = '<canvas id="bigmap" width="520" height="380"></canvas><div class="prow" id="standrow"></div>';
+    body.innerHTML = '<canvas id="bigmap" width="520" height="380"></canvas>'
+      + '<div class="legend">'
+      + '<span class="chip"><i style="background:#f2a33c"></i>Shops</span>'
+      + '<span class="chip"><i style="background:#3c78d8"></i>Police</span>'
+      + '<span class="chip"><i style="background:#e8e8e8"></i>Hospital</span>'
+      + '<span class="chip"><i style="background:#63b06b"></i>Safehouse</span>'
+      + '<span class="chip"><i style="background:#9a5fc0"></i>Garage</span>'
+      + '<span class="chip"><i style="background:#ffc93e"></i>Golden shell</span>'
+      + '<span class="chip"><i style="background:#ffd23e"></i>Mission</span>'
+      + '<span class="chip"><i style="background:#ffffff"></i>You</span></div>'
+      + '<div class="prow" id="coverrow"></div><div class="prow" id="standrow"></div>';
     const g = body.querySelector('#bigmap').getContext('2d');
+    const S = 0.72, OX = 260, OY = 188;
+    const mx = (x) => OX + x * S, my = (z) => OY + z * S;
+    // sea, then a shallow rim, then the island drawn from the REAL shore fn
     g.fillStyle = '#2e8fb8'; g.fillRect(0, 0, 520, 380);
-    g.fillStyle = '#7fae56'; g.beginPath(); g.ellipse(260, 190, 225, 175, 0, 0, 7); g.fill();
-    g.fillStyle = '#e8cf9a'; g.beginPath(); g.ellipse(260, 330, 215, 26, 0, 0, 7); g.fill();
-    g.strokeStyle = '#33373c'; g.lineWidth = 3;
-    for (const ax of [-90, -45, 0, 45, 90]) { const x = (ax / 640 + 0.5) * 520; g.beginPath(); g.moveTo(x, 90); g.lineTo(x, 300); g.stroke(); }
-    for (const sz of [-10, 35, 80, 125]) { const y = (sz / 640 + 0.5) * 380; g.beginPath(); g.moveTo(110, y); g.lineTo(410, y); g.stroke(); }
-    g.fillStyle = '#ffd23e'; g.font = 'bold 12px Arial';
+    const shorePts = [];
+    for (let x = -250; x <= 250; x += 10) shorePts.push([mx(x), my(shoreZ(x) + 4)]);
+    g.strokeStyle = 'rgba(150,220,238,0.55)'; g.lineWidth = 14; g.lineJoin = 'round';
+    g.beginPath(); shorePts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();
+    g.fillStyle = '#7fae56';
+    g.beginPath();
+    shorePts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y));
+    for (const [nx, nz] of [[250, -70], [228, -145], [160, -188], [70, -205], [-70, -205], [-160, -188], [-228, -145], [-250, -70]]) g.lineTo(mx(nx), my(nz));
+    g.closePath(); g.fill();
+    g.strokeStyle = '#e8cf9a'; g.lineWidth = 5;
+    g.beginPath(); shorePts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();
+    // park lawn
+    g.fillStyle = '#57b04a';
+    g.fillRect(mx(WORLD.park.x0), my(WORLD.park.z0), (WORLD.park.x1 - WORLD.park.x0) * S, (WORLD.park.z1 - WORLD.park.z0) * S);
+    // the real road network: avenues, streets, Ocean Drive, the runway
+    g.strokeStyle = '#43484e'; g.lineCap = 'round';
+    g.lineWidth = 9;
+    for (const ax of WORLD.avenues) { g.beginPath(); g.moveTo(mx(ax), my(WORLD.city.z0)); g.lineTo(mx(ax), my(172)); g.stroke(); }
+    for (const sz of WORLD.streets) { g.beginPath(); g.moveTo(mx(WORLD.city.x0), my(sz)); g.lineTo(mx(WORLD.city.x1), my(sz)); g.stroke(); }
+    g.beginPath(); g.moveTo(mx(-140), my(156)); g.lineTo(mx(140), my(156)); g.stroke();
+    g.save(); g.translate(mx(-195), my(110)); g.rotate(0.5);
+    g.fillStyle = '#555a60'; g.fillRect(-6, -47, 12, 94); g.restore();
+    // district names on the map
+    const labelAt = { 'DOWNTOWN': [0, 14], 'PALM PARK': [0, 82], 'OCEAN DRIVE': [-84, 146], 'THE MARINA': [152, 84], 'BAY AIRPORT': [-186, 146], 'FORT SOL': [185, -60], 'NORTH HILLS': [-138, -138] };
+    g.font = 'bold 11px Arial'; g.textAlign = 'center';
+    for (const d of DISTRICTS) {
+      const [lx, lz] = labelAt[d.name] || [d.x, d.z];
+      g.fillStyle = 'rgba(20,30,20,0.55)'; g.fillText(d.name, mx(lx) + 1, my(lz) + 1);
+      g.fillStyle = '#ffffff'; g.fillText(d.name, mx(lx), my(lz));
+    }
+    // icons
+    const icon = (x, z, bg, glyph) => {
+      g.fillStyle = bg; g.beginPath(); g.arc(mx(x), my(z), 7, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(0,0,0,0.45)'; g.lineWidth = 1; g.stroke();
+      g.fillStyle = '#fff'; g.font = 'bold 9px Arial'; g.textAlign = 'center'; g.fillText(glyph, mx(x), my(z) + 3);
+    };
+    for (const shop of SHOPS) { g.fillStyle = '#f2a33c'; g.fillRect(mx(shop.x) - 3, my(163) - 3, 6, 6); }
+    icon(112, -24, '#3c78d8', 'P');
+    g.fillStyle = '#ffffff'; g.beginPath(); g.arc(mx(G.hospital.x), my(G.hospital.z), 7, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(0,0,0,0.45)'; g.lineWidth = 1; g.stroke();
+    g.fillStyle = '#d8342c'; g.fillRect(mx(G.hospital.x) - 1.5, my(G.hospital.z) - 4.5, 3, 9); g.fillRect(mx(G.hospital.x) - 4.5, my(G.hospital.z) - 1.5, 9, 3);
+    icon(G.safehouse.x, G.safehouse.z, '#63b06b', 'H');
+    if (G.landmarks) icon(G.landmarks.garage.x, G.landmarks.garage.z, '#9a5fc0', 'G');
+    G.shellSpots.forEach((s, i) => {
+      if (s.taken || save.shells.includes(i)) return;
+      g.fillStyle = '#ffc93e'; g.beginPath(); g.arc(mx(s.x), my(s.z), 2.6, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(90,60,0,0.7)'; g.lineWidth = 0.8; g.stroke();
+    });
+    if (G.beaconTarget) { // mission marker: gold diamond in a ring
+      const bx = mx(G.beaconTarget.x), by = my(G.beaconTarget.z);
+      g.strokeStyle = '#ffd23e'; g.lineWidth = 2; g.beginPath(); g.arc(bx, by, 9, 0, 7); g.stroke();
+      g.fillStyle = '#ffd23e'; g.beginPath(); g.moveTo(bx, by - 6); g.lineTo(bx + 6, by); g.lineTo(bx, by + 6); g.lineTo(bx - 6, by); g.closePath(); g.fill();
+    }
+    const p = G.player, px = mx(p.x), py = my(p.z);
+    g.save(); g.translate(px, py); g.rotate(p.car ? p.car.angle : p.angle);
+    g.fillStyle = '#ffffff'; g.strokeStyle = 'rgba(0,0,0,0.6)'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(0, -7); g.lineTo(5, 6); g.lineTo(-5, 6); g.closePath(); g.fill(); g.stroke(); g.restore();
+    // coverage counter bar: what the bay holds, and how much is yours
+    const visited = DISTRICTS.filter((d) => (save.standing[d.name] || 0) > 0).length;
+    body.querySelector('#coverrow').textContent = `JOBS ${save.jobsDone}/8 · GOLDEN SHELLS ${save.shells.length}/15 · DISTRICTS ${visited}/7`;
     const stands = Object.entries(save.standing);
     body.querySelector('#standrow').textContent = stands.length ? stands.map(([k, v]) => `${k} ${Math.round(v)}%`).join(' · ') : 'No district standing yet — finish jobs to earn it.';
-    const p = G.player;
-    g.fillStyle = '#fff'; g.beginPath(); g.arc((p.x / 640 + 0.5) * 520, (p.z / 640 + 0.5) * 380, 6, 0, 7); g.fill();
-    if (G.beaconTarget) { g.fillStyle = '#ffd23e'; g.beginPath(); g.arc((G.beaconTarget.x / 640 + 0.5) * 520, (G.beaconTarget.z / 640 + 0.5) * 380, 5, 0, 7); g.fill(); }
   } else if (tab === 'MISSIONS') {
-    body.innerHTML = G.missions.jobsState().map((j) => `<div class="mrow ${j.state}"><span>CH${j.ch} · ${j.title}</span><span>${j.state === 'done' ? 'DONE' : j.state === 'current' ? 'ACTIVE' : 'LOCKED'} · $${j.pay}</span></div>`).join('');
+    body.innerHTML = G.missions.jobsState().map((j) => `<div class="mrow ${j.state}"><span>CH${j.ch} · ${j.title}<small class="mbrief">${j.brief}</small></span><span>${j.state === 'done' ? 'DONE' : j.state === 'current' ? 'ACTIVE' : 'LOCKED'} · $${j.pay} · ${j.stages} STAGE${j.stages > 1 ? 'S' : ''}</span></div>`).join('');
   } else if (tab === 'STATS') {
     const rows = [
       ['Cash', '$' + save.cash], ['Respect', save.respect], ['Bay Rep Lv', 1 + Math.floor(save.respect / 60)],

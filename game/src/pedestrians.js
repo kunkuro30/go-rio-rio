@@ -38,21 +38,22 @@ export function createPedestrians(G) {
   // sidewalk strollers + shoppers (shop to shop along Ocean Drive)
   const walkSpots = [];
   for (const ax of WORLD.avenues) for (const sz of WORLD.streets) walkSpots.push([ax + 10.5, sz + 8]);
-  for (let i = 0; i < 34; i++) {
+  for (let i = 0; i < 46; i++) {
     const [x, z] = pick(rng, walkSpots);
     addPed(x + range(rng, -3, 3), z + range(rng, -3, 3), 'citizen');
   }
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 14; i++) {
     const s = SHOPS[i % SHOPS.length];
     const ped = addPed(s.x, s.z + 4, 'shopper');
     ped.mode = 'shop';
   }
-  for (let i = 0; i < 12; i++) addPed(range(rng, -130, 130), range(rng, 140, 165), 'citizen');
+  for (let i = 0; i < 20; i++) addPed(range(rng, -130, 130), range(rng, 140, 165), 'citizen');
   // sunbathers lying on the beach towels
   for (const spot of G.beachProps.slice(0, 10)) {
     const ped = addPed(spot.x, spot.z, 'swim', 'lie');
     ped.fig.group.rotation.x = -Math.PI / 2 + 0.06;
     ped.fig.group.position.y = groundY(spot.x, spot.z) + 0.18;
+    ped.fig.blob.visible = false; // lying flat: the ground blob would stand on edge
   }
   // volleyball pair bouncing by the net
   addPed(66, shoreZ(66) - 12, 'swim', 'stand'); addPed(74, shoreZ(74) - 12, 'swim', 'stand');
@@ -64,6 +65,7 @@ export function createPedestrians(G) {
     while (waterDepth(x, z) < 1.0 && z < shoreZ(x) + 40) z += 2;
     const fig = buildFigure(outfit(rng, 'swim'));
     fig.group.position.set(x, WATER_Y - 1.12, z); // chest-deep: feet well under the surface
+    fig.blob.visible = false; // no ground contact in open water
     G.scene.add(fig.group);
     G.swimmers.push({ fig, x, z, phase: range(rng, 0, 6) });
   }
@@ -82,7 +84,7 @@ export function createPedestrians(G) {
     update(dt) {
       for (const ped of G.peds) {
         const f = ped.fig;
-        if (ped.down > 0) { ped.down -= dt; poseFigure(f, 'down', dt); if (ped.down <= 0) { ped.hp = 60; f.group.rotation.x = 0; } continue; }
+        if (ped.down > 0) { ped.down -= dt; f.blob.visible = false; poseFigure(f, 'down', dt); if (ped.down <= 0) { ped.hp = 60; f.group.rotation.x = 0; f.blob.visible = true; } continue; }
         if (ped.mode === 'stand') { poseFigure(f, 'idle', dt); continue; }
         if (ped.mode === 'lie') continue;
         if (ped.wait > 0) { ped.wait -= dt; poseFigure(f, 'idle', dt); continue; }

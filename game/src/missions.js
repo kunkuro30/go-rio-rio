@@ -8,14 +8,14 @@ import { buildFigure, poseFigure } from './characters.js';
 import { createVehicle } from './vehicles.js';
 const LOCKUP = { x: -150, z: 60 };
 export const JOBS = [
-  { title: 'BEACH RUN', ch: 1, pay: 150, rep: 10, stages: [{ kind: 'goto', x: 24, z: 262, text: 'Reach the end of the pier' }] },
-  { title: 'HOT GOODS', ch: 1, pay: 300, rep: 15, stages: [{ kind: 'steal', car: 'sport', x: 48, z: 84, text: 'Steal the red sports car off Palm Ave' }, { kind: 'deliver', x: LOCKUP.x, z: LOCKUP.z, text: 'Deliver it to the west lockup' }] },
-  { title: 'CASE GRAB', ch: 1, pay: 600, rep: 25, stages: [{ kind: 'grab', x: 152, z: 128, text: 'Grab the gold case at the marina warehouse' }, { kind: 'lose', text: 'Lose the police' }, { kind: 'goto', x: 30, z: 176, text: 'Bring the case back to Marina' }] },
-  { title: 'AIRPORT RUN', ch: 2, pay: 800, rep: 20, stages: [{ kind: 'steal', car: 'van', x: -168, z: 60, text: 'Take the van at Bay Airport' }, { kind: 'deliver', x: 60, z: 40, text: 'Drop the van downtown' }] },
-  { title: 'STREET HEAT', ch: 2, pay: 1000, rep: 25, stages: [{ kind: 'steal', car: 'coupe', x: -48, z: 40, text: 'Take the coupe by Palm Park' }, { kind: 'race', text: 'Hit every checkpoint across town' }] },
-  { title: 'DOC RUN', ch: 2, pay: 1400, rep: 30, stages: [{ kind: 'goto', x: -104, z: -6, text: 'Meet the doctor at Bay Clinic' }, { kind: 'goto', x: 186, z: -44, text: 'Carry the meds to Fort Sol' }] },
-  { title: 'HARBOUR HAUL', ch: 3, pay: 2200, rep: 35, stages: [{ kind: 'steal', car: 'truck', x: 150, z: 118, text: 'Take the truck at the marina' }, { kind: 'deliver', x: -180, z: 96, text: 'Haul it to Bay Airport' }] },
-  { title: 'BAY DAY', ch: 3, pay: 3500, rep: 50, stages: [{ kind: 'steal', car: 'van', x: 104, z: 74, text: 'Take the party van on Ocean Ave' }, { kind: 'deliver', x: -60, z: 178, text: 'Deliver it to the beach party' }] },
+  { title: 'BEACH RUN', ch: 1, pay: 150, rep: 10, brief: 'A warm-up from Marina: a sunset stroll to the end of the pier.', stages: [{ kind: 'goto', x: 24, z: 262, text: 'Reach the end of the pier' }] },
+  { title: 'HOT GOODS', ch: 1, pay: 300, rep: 15, brief: 'Lift the red sports car off Palm Ave and cool it at the lockup.', stages: [{ kind: 'steal', car: 'sport', x: 48, z: 84, text: 'Steal the red sports car off Palm Ave' }, { kind: 'deliver', x: LOCKUP.x, z: LOCKUP.z, text: 'Deliver it to the west lockup' }] },
+  { title: 'CASE GRAB', ch: 1, pay: 600, rep: 25, brief: 'Snatch the gold case at the marina — then shake the heat.', stages: [{ kind: 'grab', x: 152, z: 128, text: 'Grab the gold case at the marina warehouse' }, { kind: 'lose', text: 'Lose the police' }, { kind: 'goto', x: 30, z: 176, text: 'Bring the case back to Marina' }] },
+  { title: 'AIRPORT RUN', ch: 2, pay: 800, rep: 20, brief: 'A van at Bay Airport needs to disappear downtown.', stages: [{ kind: 'steal', car: 'van', x: -168, z: 60, text: 'Take the van at Bay Airport' }, { kind: 'deliver', x: 60, z: 40, text: 'Drop the van downtown' }] },
+  { title: 'STREET HEAT', ch: 2, pay: 1000, rep: 25, brief: 'Steal the coupe and thread every checkpoint across town.', stages: [{ kind: 'steal', car: 'coupe', x: -48, z: 40, text: 'Take the coupe by Palm Park' }, { kind: 'race', text: 'Hit every checkpoint across town' }] },
+  { title: 'DOC RUN', ch: 2, pay: 1400, rep: 30, brief: 'Clinic pickup, Fort Sol drop — the meds ride with you.', stages: [{ kind: 'goto', x: -104, z: -6, text: 'Meet the doctor at Bay Clinic' }, { kind: 'goto', x: 186, z: -44, text: 'Carry the meds to Fort Sol' }] },
+  { title: 'HARBOUR HAUL', ch: 3, pay: 2200, rep: 35, brief: 'Haul the marina truck all the way to Bay Airport.', stages: [{ kind: 'steal', car: 'truck', x: 150, z: 118, text: 'Take the truck at the marina' }, { kind: 'deliver', x: -180, z: 96, text: 'Haul it to Bay Airport' }] },
+  { title: 'BAY DAY', ch: 3, pay: 3500, rep: 50, brief: 'The finale: a party van, a beach party, the whole bay watching.', stages: [{ kind: 'steal', car: 'van', x: 104, z: 74, text: 'Take the party van on Ocean Ave' }, { kind: 'deliver', x: -60, z: 178, text: 'Deliver it to the beach party' }] },
 ];
 const RACE_POINTS = [[45, -10], [90, 35], [45, 80], [0, 125], [-45, 80], [-90, 35]];
 export function createMissions(G) {
@@ -101,6 +101,7 @@ export function createMissions(G) {
   G.onExplosion = () => { G.addHeat(120, G.player.x, G.player.z); };
   // side systems ------------------------------------------------------------
   const GARAGE = { x: 96, z: 118 }, SELL = { x: LOCKUP.x, z: LOCKUP.z + 8 }, COURIER_SPOT = { x: -26, z: 172 };
+  G.landmarks = { garage: GARAGE, lockup: LOCKUP }; // pause-map icons read these
   function near(x, z, d) { return Math.hypot(G.player.x - x, G.player.z - z) < d; }
   m.update = (dt) => {
     poseFigure(marinaFig, 'idle', dt);
@@ -188,6 +189,6 @@ export function createMissions(G) {
   };
   m.activate = activateJob;
   m.refreshObjective = refreshObjective;
-  m.jobsState = () => JOBS.map((j, i) => ({ title: j.title, ch: j.ch, pay: j.pay, state: i < m.jobIdx ? 'done' : i === m.jobIdx ? 'current' : 'locked' }));
+  m.jobsState = () => JOBS.map((j, i) => ({ title: j.title, ch: j.ch, pay: j.pay, stages: j.stages.length, brief: j.brief, state: i < m.jobIdx ? 'done' : i === m.jobIdx ? 'current' : 'locked' }));
   return m;
 }

@@ -16,9 +16,20 @@ export function stageShot(G, name) {
     const sport = createVehicle(G, 'sport', 48.4, 62, Math.PI, 0xd8232a);
     p.enterCar(sport);
     const c1 = createVehicle(G, 'police', 43.5, 73, Math.PI); c1.isBlock = true;
-    const c2 = createVehicle(G, 'police', 53, 82, Math.PI); c2.isBlock = true;
+    const c2 = createVehicle(G, 'police', 53.5, 68.5, Math.PI); c2.isBlock = true;
     G.police.units.push(c1, c2); G.police.heat = 300;
+    // kerbside density on the avenue so the street reads lived-in
+    createVehicle(G, 'sedan', 38.8, 47, 0);
+    createVehicle(G, 'coupe', 51.6, 44, Math.PI);
     G.hud.setObjective('HOT GOODS — Deliver it to the west lockup');
+    // The key line repeats: the queue drains in real time while the
+    // capture waits for its frames, so the portrait is still up at the shot.
+    G.hud.dialogue('MARINA SOL', [
+      'The bay is watching, Rio.',
+      'Every cruiser in Palmera is rolling — shake them, or run it straight to the west lockup!',
+      'Every cruiser in Palmera is rolling — shake them, or run it straight to the west lockup!',
+      'Every cruiser in Palmera is rolling — shake them, or run it straight to the west lockup!',
+    ]);
     G.beaconTarget = { x: -150, z: 60 };
     cam(56, 4.6, 82, 46, 1.3, 57);
   } else if (name === 'beach') {
@@ -37,16 +48,16 @@ export function stageShot(G, name) {
     cam(7.5, 3.1, 47, -3, 6, -20);
   } else if (name === 'mission') {
     G.shotMode = true;
-    p.x = 144; p.z = 135; p.angle = -Math.PI / 2;
+    p.x = 140; p.z = 130; p.angle = Math.PI / 2;
     p.fig.group.position.set(p.x, groundY(p.x, p.z), p.z);
-    p.fig.group.rotation.y = -Math.PI / 2;
-    const c1 = createVehicle(G, 'police', 143, 116, 2.5); c1.isBlock = true;
-    const c2 = createVehicle(G, 'police', 161, 114, -2.5); c2.isBlock = true;
+    p.fig.group.rotation.y = Math.PI / 2;
+    const c1 = createVehicle(G, 'police', 152, 124, 2.2); c1.isBlock = true;
+    const c2 = createVehicle(G, 'police', 162, 130, -2.8); c2.isBlock = true;
     G.police.units.push(c1, c2); G.police.heat = 400;
     G.missions.hasCase = true;
     G.hud.setObjective('CASE GRAB — Lose the police');
     G.beaconTarget = { x: 30, z: 176 };
-    cam(128, 3.6, 138, 156, 1.6, 120);
+    cam(130, 3.2, 138, 168, 1.4, 122);
   } else if (name.startsWith('char')) {
     // On the open sand by the pier — no shoppers, no parked cars in frame.
     p.x = 34; p.z = 190;

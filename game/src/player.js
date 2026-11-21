@@ -49,6 +49,7 @@ export function createPlayer(G) {
   p.update = (dt) => {
     const inp = G.input;
     if (p.car) {
+      fig.blob.visible = false; // seated: no ground shadow inside the cabin
       const car = p.car, spec = car.spec;
       const up = inp.down('KeyW') || inp.down('ArrowUp'), dn = inp.down('KeyS') || inp.down('ArrowDown');
       const lf = inp.down('KeyA') || inp.down('ArrowLeft'), rt = inp.down('KeyD') || inp.down('ArrowRight');
@@ -113,6 +114,7 @@ export function createPlayer(G) {
       return;
     }
     // --- on foot ---
+    fig.blob.visible = true;
     G.audio.engine(false);
     const fwd = (inp.down('KeyW') || inp.down('ArrowUp') ? 1 : 0) - (inp.down('KeyS') || inp.down('ArrowDown') ? 1 : 0);
     const strafe = (inp.down('KeyD') || inp.down('ArrowRight') ? 1 : 0) - (inp.down('KeyA') || inp.down('ArrowLeft') ? 1 : 0);

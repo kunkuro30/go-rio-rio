@@ -66,6 +66,20 @@ export function buildFigure(opts = {}) {
     phase: Math.random() * 6, recoil: 0, height: FIGURE_HEIGHT,
   };
   root.traverse((o) => { o.userData.partOfFigure = true; });
+  // Soft blob contact shadow: grounds the figure so it never reads as
+  // floating. Added AFTER the traverse so weapons never target it.
+  if (!buildFigure.blobMat) {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d');
+    const gr = g.createRadialGradient(32, 32, 4, 32, 32, 31);
+    gr.addColorStop(0, 'rgba(20,16,8,0.42)'); gr.addColorStop(0.7, 'rgba(20,16,8,0.22)'); gr.addColorStop(1, 'rgba(20,16,8,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    buildFigure.blobMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false });
+  }
+  const blob = new THREE.Mesh(new THREE.CircleGeometry(0.46, 18), buildFigure.blobMat);
+  blob.rotation.x = -Math.PI / 2; blob.position.y = 0.03; blob.renderOrder = 2;
+  root.add(blob);
+  fig.blob = blob;
   return fig;
 }
 // Pose a figure. mode: 'walk' | 'idle' | 'aim' | 'sit' | 'swim' | 'down'

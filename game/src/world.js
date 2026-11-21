@@ -40,8 +40,8 @@ export function buildWorld(scene, G) {
   scene.fog = new THREE.Fog(0xf2c98d, 180, 720);
   const skyTex = canvasTex(64, 512, (g, w, h) => {
     const gr = g.createLinearGradient(0, 0, 0, h);
-    gr.addColorStop(0, '#2f66b8'); gr.addColorStop(0.42, '#6fa8e0');
-    gr.addColorStop(0.72, '#f7cf8e'); gr.addColorStop(0.92, '#ffb066'); gr.addColorStop(1, '#ff9e57');
+    gr.addColorStop(0, '#27589f'); gr.addColorStop(0.38, '#5f97d8');
+    gr.addColorStop(0.66, '#eec27f'); gr.addColorStop(0.85, '#ffab5e'); gr.addColorStop(1, '#ff8f45');
     g.fillStyle = gr; g.fillRect(0, 0, w, h);
   });
   const sky = new THREE.Mesh(new THREE.SphereGeometry(880, 24, 14),
@@ -88,13 +88,18 @@ export function buildWorld(scene, G) {
   gGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   gGeo.computeVertexNormals();
   scene.add(new THREE.Mesh(gGeo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 })));
-  // --- sea: irregular foam-streak texture, slowly drifting ---
+  // --- sea: fine ripple grain, slowly drifting (no big graphic streaks) ---
   const seaTex = canvasTex(256, 256, (g, w, h) => {
     g.fillStyle = '#2e8fb8'; g.fillRect(0, 0, w, h);
-    g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 2;
-    for (let i = 0; i < 42; i++) { // wavy arcs, deliberately irregular lengths
-      const y = Math.random() * h; g.beginPath();
-      g.arc(Math.random() * w, y, 12 + Math.random() * 30, Math.PI * 1.1, Math.PI * 1.9); g.stroke();
+    for (let i = 0; i < 2600; i++) { // micro speckle: light + dark water grain
+      g.fillStyle = Math.random() < 0.5 ? `rgba(255,255,255,${0.03 + Math.random() * 0.07})` : `rgba(8,50,80,${0.03 + Math.random() * 0.06})`;
+      g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1);
+    }
+    g.lineWidth = 1;
+    for (let i = 0; i < 150; i++) { // short fine ripple dashes, sun-caught
+      g.strokeStyle = `rgba(255,246,220,${0.05 + Math.random() * 0.1})`;
+      const x = Math.random() * w, y = Math.random() * h, len = 3 + Math.random() * 7;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + len, y + (Math.random() - 0.5) * 1.5); g.stroke();
     }
   }, 30, 30);
   const sea = new THREE.Mesh(new THREE.PlaneGeometry(1500, 1500),
@@ -108,6 +113,20 @@ export function buildWorld(scene, G) {
     f.rotation.x = -Math.PI / 2; f.position.set(x + 4, WATER_Y + 0.03, shoreZ(x + 4) + 1);
     f.rotation.z = Math.atan2(shoreZ(x + 8) - shoreZ(x), 8);
     scene.add(f);
+  }
+  // shallows: a translucent aqua gradient band hugging the shore, so the
+  // water visibly lightens as the seabed rises toward the sand (depth cue).
+  const shalTex = canvasTex(2, 64, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, 'rgba(190,240,244,0.55)'); gr.addColorStop(0.55, 'rgba(160,225,235,0.22)'); gr.addColorStop(1, 'rgba(160,225,235,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  });
+  const shalMat = new THREE.MeshBasicMaterial({ map: shalTex, transparent: true, depthWrite: false });
+  for (let x = -240; x < 240; x += 8) {
+    const sh = new THREE.Mesh(new THREE.PlaneGeometry(8.4, 20), shalMat);
+    sh.rotation.x = -Math.PI / 2; sh.position.set(x + 4, WATER_Y + 0.015, shoreZ(x + 4) + 4);
+    sh.rotation.z = Math.atan2(shoreZ(x + 8) - shoreZ(x), 8);
+    scene.add(sh);
   }
   // --- roads, sidewalks, crosswalks (stripes aligned to the grid) ---
   const asphaltTex = canvasTex(128, 128, (g, w, h) => {
@@ -219,11 +238,22 @@ export function buildWorld(scene, G) {
       const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 5.6, 7), std(0x8a6a48, 1));
       trunk.position.y = 2.8; trunk.rotation.z = range(rng, -0.08, 0.08); g.add(trunk);
       const frondMat = std(0x3f9e4d, 0.95);
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 10; i++) { // outer crown: longer drooping fronds
         const pivot = new THREE.Group(); pivot.position.y = 5.6;
-        pivot.rotation.y = (i / 7) * Math.PI * 2; pivot.rotation.z = -0.5 - (i % 3) * 0.12;
+        pivot.rotation.y = (i / 10) * Math.PI * 2 + 0.2; pivot.rotation.z = -0.52 - (i % 3) * 0.13;
         const fr = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6), frondMat);
-        fr.scale.set(1.8, 0.14, 0.4); fr.position.x = 1.5; pivot.add(fr); g.add(pivot);
+        fr.scale.set(1.95, 0.15, 0.46); fr.position.x = 1.6; pivot.add(fr); g.add(pivot);
+      }
+      const frondMat2 = std(0x55b45e, 0.95);
+      for (let i = 0; i < 6; i++) { // inner crown: shorter, more upright — volume near the camera
+        const pivot = new THREE.Group(); pivot.position.y = 5.75;
+        pivot.rotation.y = (i / 6) * Math.PI * 2 + 0.55; pivot.rotation.z = -0.22 - (i % 2) * 0.1;
+        const fr = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6), frondMat2);
+        fr.scale.set(1.25, 0.13, 0.38); fr.position.x = 1.0; pivot.add(fr); g.add(pivot);
+      }
+      for (let i = 0; i < 3; i++) { // coconut cluster at the crown base
+        const nut = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 7), std(0x6e5136, 0.9));
+        nut.position.set(Math.cos(i * 2.1) * 0.24, 5.45, Math.sin(i * 2.1) * 0.24); g.add(nut);
       }
     } else {
       const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.24, 2.4, 7), std(0x6e5136, 1)); trunk.position.y = 1.2; g.add(trunk);
@@ -350,6 +380,44 @@ export function buildWorld(scene, G) {
     crate.position.set(148 + (i % 3) * 2.1, groundY(150, 132) + 0.8 + Math.floor(i / 3) * 1.65, 132);
     scene.add(crate);
   }
+  // marina yard: a worked concrete apron, not a bare field — painted bays,
+  // stacked shipping containers, more crates and boats on trailers by the dock.
+  const yardMat = std(0x7c8085, 0.98);
+  flat(58, 52, yardMat, 155, 116, 0.05);
+  const bayLineMat = new THREE.MeshBasicMaterial({ color: 0xe8e2c8 });
+  for (let i = 0; i < 5; i++) flat(0.3, 16, bayLineMat, 134 + i * 11, 128, 0.09);
+  flat(52, 0.35, bayLineMat, 155, 104, 0.09);
+  const contCols = [0xb0502e, 0x3c78d8, 0x4d8a5a];
+  [[176, 97, 0, 0], [176, 97, 0, 1], [176, 103.5, 0, 0], [131, 97, Math.PI / 2, 0], [138.5, 97, Math.PI / 2, 0]].forEach(([cx, cz, ry, lvl], i) => {
+    const cont = new THREE.Mesh(new THREE.BoxGeometry(6.4, 2.6, 2.5), std(contCols[i % 3], 0.8, { metalness: 0.25 }));
+    cont.position.set(cx, groundY(cx, cz) + 1.3 + lvl * 2.6, cz); cont.rotation.y = ry; scene.add(cont);
+    if (!lvl) G.colliders.push({ x: cx, z: cz, hx: ry ? 1.4 : 3.3, hz: ry ? 3.3 : 1.4, h: 2.6 });
+  });
+  for (let i = 0; i < 6; i++) {
+    const crate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6), std(i % 2 ? 0x6e7f8a : 0x9a7648, 0.9));
+    crate.position.set(160 + (i % 3) * 2.1, groundY(162, 136) + 0.8 + Math.floor(i / 3) * 1.65, 136);
+    scene.add(crate);
+  }
+  function boatOnTrailer(bx, bz, ry, hullCol) {
+    const g = new THREE.Group(); g.position.set(bx, groundY(bx, bz), bz); g.rotation.y = ry;
+    const hull = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.9, 6.4), std(hullCol, 0.5)); hull.position.y = 1.25; g.add(hull);
+    const bow = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 0.9, 3, 1), std(hullCol, 0.5)); bow.position.set(0, 1.25, 3.6); bow.rotation.y = Math.PI; g.add(bow);
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.75, 2.1), std(0xf2f2f2, 0.4)); cab.position.set(0, 1.95, -0.4); g.add(cab);
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.16, 5.8), std(0x3a3f45, 0.6)); frame.position.y = 0.62; g.add(frame);
+    for (const sx of [-0.95, 0.95]) { const wh = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.14, 10), std(0x222222, 0.7)); wh.rotation.z = Math.PI / 2; wh.position.set(sx, 0.34, -0.6); g.add(wh); }
+    scene.add(g);
+    G.colliders.push({ x: bx, z: bz, hx: 1.6, hz: 3.4, h: 2.2 });
+  }
+  boatOnTrailer(168, 133, -0.35, 0x3f8fbf);
+  boatOnTrailer(133, 108, 0.9, 0xe8762c);
+  const dock = new THREE.Mesh(new THREE.BoxGeometry(56, 0.3, 3.6), wood);
+  dock.position.set(155, groundY(155, 144) + 0.15, 144); scene.add(dock);
+  for (const [lx, lz] of [[130, 94], [180, 94], [180, 140]]) {
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 5, 7), lampMat);
+    p.position.set(lx, groundY(lx, lz) + 2.5, lz); scene.add(p);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffe9b0 }));
+    bulb.position.set(lx, groundY(lx, lz) + 5.05, lz); scene.add(bulb);
+  }
   G.safehouse = { x: 118, z: -30 };
   const shSign = signMesh('RIO SAFEHOUSE', 11, '#5c3a21'); shSign.position.set(118, groundY(118, -30) + 5.4, -23.4); scene.add(shSign);
   building(118, -30, 13, 10, 7, facades[5]);
@@ -389,7 +457,14 @@ export function buildWorld(scene, G) {
   const shellMat = new THREE.MeshStandardMaterial({ color: 0xffc93e, roughness: 0.25, metalness: 0.8, emissive: 0x664d00 });
   for (let i = 0; i < 15; i++) {
     const a = (i / 15) * Math.PI * 2;
-    const sx = Math.cos(a) * range(rng, 60, 190), sz = Math.sin(a) * range(rng, 60, 170) + 30;
+    let sx = Math.cos(a) * range(rng, 60, 190), sz = Math.sin(a) * range(rng, 60, 170) + 30;
+    // Never on a road or the marina apron: a gold shell in the carriageway
+    // reads as a giant egg in chase frames. Roadside/beach spots instead.
+    const onRoad = (WORLD.avenues.some((ax) => Math.abs(sx - ax) < 9.5 && sz > WORLD.city.z0 && sz < 172)
+      || WORLD.streets.some((st) => Math.abs(sz - st) < 9.5 && sx > WORLD.city.x0 && sx < WORLD.city.x1)
+      || (sz > 146 && sz < 167 && Math.abs(sx) < 146)
+      || (sx > 124 && sx < 186 && sz > 88 && sz < 146));
+    if (onRoad) { sz = shoreZ(sx) - range(rng, 6, 14); }
     const y = Math.max(groundY(sx, sz), WATER_Y) + 0.7;
     const shell = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 8), shellMat);
     shell.scale.y = 0.6; shell.position.set(sx, y, sz); scene.add(shell);

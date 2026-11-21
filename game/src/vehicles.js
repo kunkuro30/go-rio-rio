@@ -308,6 +308,14 @@ function seedTraffic(G) {
     createVehicle(G, t, x, z, Math.PI / 2);
   });
   WORLD.avenues.forEach((ax, i) => { if (i % 2 === 0) createVehicle(G, 'sedan', ax - 3.4, 20 + i * 22, Math.PI); });
+  // kerbside parking downtown (clear of the ±3.4 traffic lanes) + a second
+  // Ocean Drive row, so the staged corridors read lived-in, not empty.
+  const kerbTypes = ['sedan', 'coupe', 'sedan', 'van', 'coupe', 'sedan', 'taxi', 'sedan', 'coupe', 'sedan'];
+  WORLD.avenues.forEach((ax, i) => {
+    createVehicle(G, kerbTypes[i % kerbTypes.length], ax + 5.9, -22 + i * 27, Math.PI);
+    createVehicle(G, kerbTypes[(i + 4) % kerbTypes.length], ax - 5.9, 138 - i * 6, 0);
+  });
+  [-96, -48, 60, 108].forEach((x, i) => createVehicle(G, kerbTypes[(i + 2) % kerbTypes.length], x, 162.6, -Math.PI / 2));
 }
 function trafficStep(G, car, dt) {
   const tr = car.traffic, [x0, x1, z0, z1] = tr.loop;
