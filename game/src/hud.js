@@ -81,7 +81,12 @@ export function createHud(G) {
     G.shellSpots.forEach((s, i) => { if (!s.taken && !G.save.shells.includes(i)) dot(s.x, s.z, '#ffc93e', 2); });
     for (const car of G.cars) if (Math.hypot(car.x - G.player.x, car.z - G.player.z) < 95) dot(car.x, car.z, '#d8d8d8', 2);
     for (const u of G.police.units) dot(u.x, u.z, '#3c78ff', 3);
-    if (G.beaconTarget) dot(G.beaconTarget.x, G.beaconTarget.z, '#ffd23e', 4);
+    if (G.beaconTarget) {
+      const [bx, by] = world2map(G.beaconTarget.x, G.beaconTarget.z, S), [qx, qy] = world2map(G.player.x, G.player.z, S);
+      g.strokeStyle = '#ffd23e'; g.lineWidth = 2; g.setLineDash([5, 4]);
+      g.beginPath(); g.moveTo(qx, qy); g.lineTo(bx, by); g.stroke(); g.setLineDash([]);
+      dot(G.beaconTarget.x, G.beaconTarget.z, '#ffd23e', 4);
+    }
     const p = G.player, [px, py] = world2map(p.x, p.z, S);
     g.save(); g.translate(px, py); g.rotate(p.car ? p.car.angle : p.angle);
     g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(0, -6); g.lineTo(4, 5); g.lineTo(-4, 5); g.closePath(); g.fill(); g.restore();
@@ -164,7 +169,7 @@ export function renderPause(G, tab) {
     g.fillStyle = '#ffffff'; g.strokeStyle = 'rgba(0,0,0,0.6)'; g.lineWidth = 1;
     g.beginPath(); g.moveTo(0, -7); g.lineTo(5, 6); g.lineTo(-5, 6); g.closePath(); g.fill(); g.stroke(); g.restore();
     const visited = DISTRICTS.filter((d) => (save.standing[d.name] || 0) > 0).length;
-    body.querySelector('#coverrow').textContent = `JOBS ${save.jobsDone}/8 · GOLDEN SHELLS ${save.shells.length}/15 · DISTRICTS ${visited}/7`;
+    body.querySelector('#coverrow').textContent = `JOBS ${save.jobsDone}/10 · GOLDEN SHELLS ${save.shells.length}/20 · DISTRICTS ${visited}/7`;
     const stands = Object.entries(save.standing);
     body.querySelector('#standrow').textContent = stands.length ? stands.map(([k, v]) => `${k} ${Math.round(v)}%`).join(' · ') : 'No district standing yet — finish jobs to earn it.';
   } else if (tab === 'MISSIONS') {
@@ -172,7 +177,7 @@ export function renderPause(G, tab) {
   } else if (tab === 'STATS') {
     const rows = [
       ['Cash', '$' + save.cash], ['Respect', save.respect], ['Bay Rep Lv', 1 + Math.floor(save.respect / 60)],
-      ['Day', save.day], ['Jobs done', save.jobsDone + ' / 8'], ['Golden shells', save.shells.length + ' / 15'],
+      ['Day', save.day], ['Jobs done', save.jobsDone + ' / 10'], ['Golden shells', save.shells.length + ' / 20'],
       ['Safehouse', save.safehouse ? 'owned' : '—'], ['Garage', `ENGINE Lv${save.garage.engine} · ARMOUR Lv${save.garage.armour} · NITRO ${save.garage.nitro ? 'yes' : 'no'}`],
       ['Best Street Heat', save.bestRace.heat ? save.bestRace.heat + 's' : '—'],
     ];

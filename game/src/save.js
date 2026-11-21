@@ -1,7 +1,7 @@
 
 
 const KEY = 'go-rio-rio-save-v1';
-export const JOB_COUNT = 8;
+export const JOB_COUNT = 10;
 function clampNum(v, lo, hi, fallback) {
  const n = typeof v === 'number' && Number.isFinite(v) ? v : fallback;
  return Math.min(hi, Math.max(lo, n));
@@ -32,7 +32,7 @@ export function loadSave() {
  if (raw.ammo && typeof raw.ammo === 'object') {
   for (const k of ['pistol', 'smg', 'rifle']) d.ammo[k] = Math.floor(clampNum(raw.ammo[k], 0, 9999, d.ammo[k] || 0));
  }
- if (Array.isArray(raw.shells)) d.shells = raw.shells.filter((n) => Number.isInteger(n) && n >= 0 && n < 15);
+ if (Array.isArray(raw.shells)) d.shells = raw.shells.filter((n) => Number.isInteger(n) && n >= 0 && n < 20);
  if (raw.bestRace && typeof raw.bestRace === 'object') {
   for (const k of Object.keys(raw.bestRace)) {
    const v = clampNum(raw.bestRace[k], 1, 3600, 0);

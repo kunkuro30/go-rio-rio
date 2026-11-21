@@ -40,11 +40,11 @@ export function buildWorld(scene, G) {
  const rng = mulberry32(1337);
  G.colliders = []; G.ramps = []; G.props = [];
 
- scene.fog = new THREE.Fog(0xf2c98d, 180, 720);
+ scene.fog = new THREE.Fog(0xf6cd96, 180, 720);
  const skyTex = canvasTex(64, 512, (g, w, h) => {
   const gr = g.createLinearGradient(0, 0, 0, h);
   gr.addColorStop(0, '#27589f'); gr.addColorStop(0.38, '#5f97d8');
-  gr.addColorStop(0.66, '#eec27f'); gr.addColorStop(0.85, '#ffab5e'); gr.addColorStop(1, '#ff8f45');
+  gr.addColorStop(0.66, '#f4bd72'); gr.addColorStop(0.85, '#ff9e4f'); gr.addColorStop(1, '#ff8f45');
   g.fillStyle = gr; g.fillRect(0, 0, w, h);
  });
  const sky = new THREE.Mesh(new THREE.SphereGeometry(880, 24, 14),
@@ -93,20 +93,20 @@ export function buildWorld(scene, G) {
  scene.add(new THREE.Mesh(gGeo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 })));
 
  const seaTex = canvasTex(256, 256, (g, w, h) => {
-  g.fillStyle = '#2e8fb8'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#22779f'; g.fillRect(0, 0, w, h);
   for (let i = 0; i < 2600; i++) {
    g.fillStyle = Math.random() < 0.5 ? `rgba(255,255,255,${0.03 + Math.random() * 0.07})` : `rgba(8,50,80,${0.03 + Math.random() * 0.06})`;
    g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1);
   }
   g.lineWidth = 1;
   for (let i = 0; i < 150; i++) {
-   g.strokeStyle = `rgba(255,246,220,${0.05 + Math.random() * 0.1})`;
+   g.strokeStyle = `rgba(255,246,220,${0.02 + Math.random() * 0.05})`;
    const x = Math.random() * w, y = Math.random() * h, len = 3 + Math.random() * 7;
    g.beginPath(); g.moveTo(x, y); g.lineTo(x + len, y + (Math.random() - 0.5) * 1.5); g.stroke();
   }
  }, 30, 30);
  const sea = new THREE.Mesh(new THREE.PlaneGeometry(1500, 1500),
-  new THREE.MeshPhongMaterial({ color: 0x9fd4e8, map: seaTex, transparent: true, opacity: 0.88, shininess: 140, specular: 0xfff2cc }));
+  new THREE.MeshPhongMaterial({ color: 0x5fa8cf, map: seaTex, transparent: true, opacity: 0.88, shininess: 140, specular: 0xfff2cc }));
  sea.rotation.x = -Math.PI / 2; sea.position.y = WATER_Y; scene.add(sea);
  G.seaTex = seaTex;
 
@@ -598,8 +598,8 @@ export function buildWorld(scene, G) {
 
  G.shellSpots = [];
  const shellMat = new THREE.MeshStandardMaterial({ color: 0xffc93e, roughness: 0.25, metalness: 0.8, emissive: 0x664d00 });
- for (let i = 0; i < 15; i++) {
-  const a = (i / 15) * Math.PI * 2;
+ for (let i = 0; i < 20; i++) {
+  const a = (i / 20) * Math.PI * 2;
   let sx = Math.cos(a) * range(rng, 60, 190), sz = Math.sin(a) * range(rng, 60, 170) + 30;
 
   const onRoad = (WORLD.avenues.some((ax) => Math.abs(sx - ax) < 9.5 && sz > WORLD.city.z0 && sz < 172)
