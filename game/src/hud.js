@@ -1,6 +1,4 @@
 // HUD: brand, stars, cash, clock, bars, weapon + vehicle chips (with the
-// durability PHASE chip), objective, prompts, toasts, portrait dialogue,
-// island minimap and the pause suite (map / missions / stats / controls).
 import { PHASE_COLORS } from './durability.js';
 import { WEAPONS, districtAt, WORLD, SHOPS, DISTRICTS, shoreZ } from './config.js';
 const $ = (id) => document.getElementById(id);
@@ -57,7 +55,6 @@ export function createHud(G) {
       } else { els.veh.style.display = 'none'; els.phase.style.display = 'none'; }
       els.cross.style.display = G.input.aiming && !p.car ? 'block' : 'none';
       if (toastT > 0) { toastT -= dt; if (toastT <= 0) els.toast.style.opacity = 0; }
-      // dialogue queue
       if (dlgQueue.length) {
         els.dlg.style.display = 'flex';
         const cur = dlgQueue[0];
@@ -94,8 +91,6 @@ export function createHud(G) {
   hud.showHud(false);
   return hud;
 }
-// Pause suite: tabs rendered into #pause-body; the map tab draws districts
-// with their standing percentages.
 export function renderPause(G, tab) {
   const body = document.getElementById('pause-body');
   const save = G.save;
@@ -114,7 +109,6 @@ export function renderPause(G, tab) {
     const g = body.querySelector('#bigmap').getContext('2d');
     const S = 0.72, OX = 260, OY = 188;
     const mx = (x) => OX + x * S, my = (z) => OY + z * S;
-    // sea, then a shallow rim, then the island drawn from the REAL shore fn
     g.fillStyle = '#2e8fb8'; g.fillRect(0, 0, 520, 380);
     const shorePts = [];
     for (let x = -250; x <= 250; x += 10) shorePts.push([mx(x), my(shoreZ(x) + 4)]);
@@ -127,10 +121,8 @@ export function renderPause(G, tab) {
     g.closePath(); g.fill();
     g.strokeStyle = '#e8cf9a'; g.lineWidth = 5;
     g.beginPath(); shorePts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();
-    // park lawn
     g.fillStyle = '#57b04a';
     g.fillRect(mx(WORLD.park.x0), my(WORLD.park.z0), (WORLD.park.x1 - WORLD.park.x0) * S, (WORLD.park.z1 - WORLD.park.z0) * S);
-    // the real road network: avenues, streets, Ocean Drive, the runway
     g.strokeStyle = '#43484e'; g.lineCap = 'round';
     g.lineWidth = 9;
     for (const ax of WORLD.avenues) { g.beginPath(); g.moveTo(mx(ax), my(WORLD.city.z0)); g.lineTo(mx(ax), my(172)); g.stroke(); }
@@ -138,7 +130,6 @@ export function renderPause(G, tab) {
     g.beginPath(); g.moveTo(mx(-140), my(156)); g.lineTo(mx(140), my(156)); g.stroke();
     g.save(); g.translate(mx(-195), my(110)); g.rotate(0.5);
     g.fillStyle = '#555a60'; g.fillRect(-6, -47, 12, 94); g.restore();
-    // district names on the map
     const labelAt = { 'DOWNTOWN': [0, 14], 'PALM PARK': [0, 82], 'OCEAN DRIVE': [-84, 146], 'THE MARINA': [152, 84], 'BAY AIRPORT': [-186, 146], 'FORT SOL': [185, -60], 'NORTH HILLS': [-138, -138] };
     g.font = 'bold 11px Arial'; g.textAlign = 'center';
     for (const d of DISTRICTS) {
@@ -146,7 +137,6 @@ export function renderPause(G, tab) {
       g.fillStyle = 'rgba(20,30,20,0.55)'; g.fillText(d.name, mx(lx) + 1, my(lz) + 1);
       g.fillStyle = '#ffffff'; g.fillText(d.name, mx(lx), my(lz));
     }
-    // icons
     const icon = (x, z, bg, glyph) => {
       g.fillStyle = bg; g.beginPath(); g.arc(mx(x), my(z), 7, 0, 7); g.fill();
       g.strokeStyle = 'rgba(0,0,0,0.45)'; g.lineWidth = 1; g.stroke();
@@ -173,7 +163,6 @@ export function renderPause(G, tab) {
     g.save(); g.translate(px, py); g.rotate(p.car ? p.car.angle : p.angle);
     g.fillStyle = '#ffffff'; g.strokeStyle = 'rgba(0,0,0,0.6)'; g.lineWidth = 1;
     g.beginPath(); g.moveTo(0, -7); g.lineTo(5, 6); g.lineTo(-5, 6); g.closePath(); g.fill(); g.stroke(); g.restore();
-    // coverage counter bar: what the bay holds, and how much is yours
     const visited = DISTRICTS.filter((d) => (save.standing[d.name] || 0) > 0).length;
     body.querySelector('#coverrow').textContent = `JOBS ${save.jobsDone}/8 · GOLDEN SHELLS ${save.shells.length}/15 · DISTRICTS ${visited}/7`;
     const stands = Object.entries(save.standing);

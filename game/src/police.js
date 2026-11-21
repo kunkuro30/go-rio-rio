@@ -15,7 +15,7 @@ export function createPolice(G) {
   function spawnCruiser() {
     const a = Math.random() * Math.PI * 2, d = 75 + Math.random() * 20;
     const x = G.player.x + Math.cos(a) * d, z = G.player.z + Math.sin(a) * d;
-    const car = createVehicle(G, 'police', x, z, a);
+    const car = createVehicle(G, pol.stars >= 5 && Math.random() < 0.6 ? 'swat' : 'police', x, z, a);
     pol.units.push(car);
     return car;
   }
@@ -113,10 +113,20 @@ export function createPolice(G) {
     }
     // helicopter from 4 stars, with a working spotlight
     if (pol.stars >= 4 && !pol.heli) {
+      // AIR-2 police helicopter (cars set): bubble canopy, blue cheatline,
+      // skids, FLIR turret, tail fin + tail rotor.
       const grp = new THREE.Group();
-      const body = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 5.4), new THREE.MeshStandardMaterial({ color: 0x24406e, roughness: 0.4, metalness: 0.4 })); grp.add(body);
-      const tail = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 4.6), body.material); tail.position.z = -4.6; grp.add(tail);
-      const rotor = new THREE.Mesh(new THREE.BoxGeometry(9, 0.08, 0.5), body.material); rotor.position.y = 1.3; grp.add(rotor);
+      const hm = new THREE.MeshStandardMaterial({ color: 0xf4f6f8, roughness: 0.35, metalness: 0.35 });
+      const dm = new THREE.MeshStandardMaterial({ color: 0x24406e, roughness: 0.4, metalness: 0.3 });
+      const body = new THREE.Mesh(new THREE.SphereGeometry(1.5, 12, 10), hm); body.scale.set(0.85, 0.75, 1.9); grp.add(body);
+      const canopy = new THREE.Mesh(new THREE.SphereGeometry(1.05, 10, 8), new THREE.MeshStandardMaterial({ color: 0x2c4256, roughness: 0.12, metalness: 0.5 })); canopy.scale.set(0.8, 0.7, 1); canopy.position.set(0, 0.15, 1.6); grp.add(canopy);
+      const cheat = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.34, 3.4), dm); cheat.position.y = -0.25; grp.add(cheat);
+      const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.3, 4.8, 8), hm); tail.rotation.x = Math.PI / 2; tail.position.z = -4.4; grp.add(tail);
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.3, 0.7), dm); fin.position.set(0, 0.55, -6.6); grp.add(fin);
+      const tr = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.5, 0.18), dm); tr.position.set(0.22, 0.55, -6.6); grp.add(tr); grp.userData.tailRotor = tr;
+      for (const sx of [-1, 1]) { const skid = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.4, 6), dm); skid.rotation.x = Math.PI / 2; skid.position.set(sx * 0.95, -1.25, 0.2); grp.add(skid); }
+      const flir = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), dm); flir.position.set(0, -0.85, 1.9); grp.add(flir);
+      const rotor = new THREE.Mesh(new THREE.BoxGeometry(9.6, 0.07, 0.42), dm); rotor.position.y = 1.35; grp.add(rotor);
       grp.userData.rotor = rotor;
       G.scene.add(grp); pol.heli = grp;
       pol.heliLight = new THREE.SpotLight(0xfff6cc, 2.2, 90, 0.32, 0.5);
@@ -128,6 +138,7 @@ export function createPolice(G) {
         const a = G.time * 0.35;
         pol.heli.position.set(p.x + Math.cos(a) * 26, 30, p.z + Math.sin(a) * 26);
         pol.heli.userData.rotor.rotation.y += dt * 22;
+        if (pol.heli.userData.tailRotor) pol.heli.userData.tailRotor.rotation.x += dt * 30;
         pol.heliLight.position.copy(pol.heli.position);
         pol.heliLight.target.position.set(p.x, 0, p.z);
       }

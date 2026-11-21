@@ -45,6 +45,12 @@ export const CAR_TYPES = {
   van:    { len: 5.2, wid: 2.0, hgt: 2.0,  accel: 12, max: 23, mass: 1900, hp: 160, explode: 30, seat: { x: -0.45, y: 0.72, z: 0.9 } },
   truck:  { len: 6.4, wid: 2.2, hgt: 2.6,  accel: 10, max: 21, mass: 3200, hp: 200, explode: 28, seat: { x: -0.5, y: 1.0, z: 1.4 } },
   police: { len: 4.8, wid: 1.95, hgt: 1.5, accel: 21, max: 37, mass: 1450, hp: 150, explode: 36, seat: { x: -0.42, y: 0.4, z: 0.25 } },
+  suv:    { len: 4.9, wid: 2.0, hgt: 1.78, accel: 14, max: 25, mass: 1750, hp: 150, explode: 32, seat: { x: -0.45, y: 0.55, z: 0.3 } },
+  hatch:  { len: 4.1, wid: 1.8, hgt: 1.5,  accel: 16, max: 28, mass: 1150, hp: 110, explode: 34, seat: { x: -0.4, y: 0.4, z: 0.2 } },
+  city:   { len: 3.6, wid: 1.7, hgt: 1.55, accel: 13, max: 24, mass: 950,  hp: 100, explode: 32, seat: { x: -0.38, y: 0.42, z: 0.15 } },
+  roadster:{ len: 4.3, wid: 1.85, hgt: 1.18, accel: 23, max: 40, mass: 1100, hp: 100, explode: 36, seat: { x: -0.4, y: 0.16, z: 0.1 } },
+  limo:   { len: 6.2, wid: 2.0, hgt: 1.52, accel: 12, max: 26, mass: 2100, hp: 170, explode: 30, seat: { x: -0.42, y: 0.4, z: 0.3 } },
+  swat:   { len: 5.6, wid: 2.2, hgt: 2.3,  accel: 13, max: 26, mass: 3400, hp: 260, explode: 26, seat: { x: -0.5, y: 0.85, z: 0.9 } },
   moto:   { len: 2.2, wid: 0.7, hgt: 1.15, accel: 22, max: 36, mass: 220, hp: 60, explode: 30, seat: { x: 0, y: 0.72, z: -0.1 } },
 };
 // Seated figure bounding box (local, metres) used by the seat-socket check:

@@ -19,8 +19,9 @@ export function stageShot(G, name) {
     const c2 = createVehicle(G, 'police', 53.5, 68.5, Math.PI); c2.isBlock = true;
     G.police.units.push(c1, c2); G.police.heat = 300;
     // kerbside density on the avenue so the street reads lived-in
-    createVehicle(G, 'sedan', 38.8, 47, 0);
-    createVehicle(G, 'coupe', 51.6, 44, Math.PI);
+    createVehicle(G, 'suv', 41.5, 57, 0);
+    createVehicle(G, 'hatch', 52.8, 50, Math.PI);
+    createVehicle(G, 'limo', 38.5, 68, 0);
     G.hud.setObjective('HOT GOODS — Deliver it to the west lockup');
     // The key line repeats: the queue drains in real time while the
     // capture waits for its frames, so the portrait is still up at the shot.

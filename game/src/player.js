@@ -1,5 +1,4 @@
 // The player: Rio on foot (walk / sprint / swim), in a car (seat-socket
-// placement), airborne off ramps, and fenced in by the world boundary.
 const THREE = window.THREE;
 import { TUNING, groundY, waterDepth, isWater, WORLD } from './config.js';
 import { buildFigure, poseFigure } from './characters.js';
@@ -7,7 +6,6 @@ import { carHitsBuilding, damageCar } from './vehicles.js';
 import { powerFactor } from './durability.js';
 export function createPlayer(G) {
   const fig = buildFigure({ skin: 0xd9a37e, shirt: 0xe8762c, pants: 0x2e4a7a, shoes: 0xd8342c, hair: 0x201409, accent: 0xe8762c });
-  // Rio: orange jacket, red shoes — readable in every frame.
   G.scene.add(fig.group);
   const p = {
     fig, x: 6, z: 148, y: 0, vy: 0, angle: Math.PI, hp: 100, armour: 0,
@@ -66,7 +64,6 @@ export function createPlayer(G) {
       }
       let nx = car.x + Math.sin(car.angle) * car.speed * dt;
       let nz = car.z + Math.cos(car.angle) * car.speed * dt;
-      // ramps: launch when crossing a ramp at speed
       if (!p.airborne) {
         for (const r of G.ramps) if (Math.hypot(nx - r.x, nz - r.z) < 3.4 && Math.abs(car.speed) > 11) { p.airborne = true; p.vy = 6.4; G.onStunt(); break; }
       }
@@ -77,7 +74,6 @@ export function createPlayer(G) {
         car.speed = -car.speed * 0.25;
         nx = car.x; nz = car.z;
       }
-      // car vs car
       for (const other of G.cars) {
         if (other === car) continue;
         const d = Math.hypot(other.x - nx, other.z - nz);
@@ -98,13 +94,9 @@ export function createPlayer(G) {
         car.mesh.position.y = Math.max(gy, p.y);
         if (p.y <= gy) { p.y = gy; p.airborne = false; damageCar(G, car, Math.abs(p.vy) * 0.7, 4200); }
       } else p.y = groundY(car.x, car.z);
-      // seat socket: the seated figure is placed by the NAMED socket on the
-      // car spec, never by eyeballing an offset.
       const s = spec.seat;
       const sx = car.x + Math.cos(car.angle) * s.x + Math.sin(car.angle) * s.z;
       const sz = car.z - Math.sin(car.angle) * s.x + Math.cos(car.angle) * s.z;
-      // The sit pose raises the pelvis 0.55 above the group origin, so the
-      // origin sits 0.55 BELOW the socket: the pelvis lands exactly on it.
       fig.group.position.set(sx, car.mesh.position.y + s.y - 0.55, sz);
       fig.group.rotation.y = car.angle;
       poseFigure(fig, 'sit', dt);
@@ -113,7 +105,6 @@ export function createPlayer(G) {
       if (inp.pressed['KeyE']) { const spd = car.speed; p.eject(); if (Math.abs(spd) < 1) car.speed = 0; }
       return;
     }
-    // --- on foot ---
     fig.blob.visible = true;
     G.audio.engine(false);
     const fwd = (inp.down('KeyW') || inp.down('ArrowUp') ? 1 : 0) - (inp.down('KeyS') || inp.down('ArrowDown') ? 1 : 0);
@@ -135,7 +126,6 @@ export function createPlayer(G) {
       p.angle = Math.atan2(mx, mz);
       p.speed = spd;
     } else p.speed = 0;
-    // world boundary: too far out, the tide brings Rio back to the beach
     if (Math.hypot(p.x, p.z) > WORLD.islandRadius || depth > 3.4) {
       p.x = 10; p.z = 178; G.hud.toast('THE TIDE BRINGS YOU BACK TO PALMERA BAY');
     }
@@ -152,7 +142,6 @@ export function createPlayer(G) {
       const car = nearestCar();
       if (car) p.enterCar(car);
     }
-    // Punching is the fists "fire" input: a left click with fists selected.
   };
   return p;
 }

@@ -1,6 +1,4 @@
 // Citizens: shoppers walking shop to shop, strollers on the sidewalks,
-// keepers in front of their shops, sunbathers, volleyball players and
-// swimmers who are IN the water (depth from the shared shoreline fn).
 import { SHOPS, WORLD, groundY, shoreZ, WATER_Y, waterDepth } from './config.js';
 import { buildFigure, poseFigure } from './characters.js';
 import { mulberry32, pick, range } from './random.js';
@@ -28,14 +26,12 @@ export function createPedestrians(G) {
     G.peds.push(ped);
     return ped;
   }
-  // keepers stand at their shop fronts, dressed by the shop colour
   for (const shop of SHOPS) {
     const ped = addPed(shop.x + range(rng, -3, 3), shop.z + 1.5, 'keeper', 'stand');
     ped.fig.group.rotation.y = Math.PI; // face the beach promenade
   }
   addPed(-108, -8, 'doctor', 'stand'); addPed(-104, -6, 'nurse', 'stand');
   addPed(-106, 138, 'fire', 'stand'); addPed(-100, 140, 'fire', 'stand');
-  // sidewalk strollers + shoppers (shop to shop along Ocean Drive)
   const walkSpots = [];
   for (const ax of WORLD.avenues) for (const sz of WORLD.streets) walkSpots.push([ax + 10.5, sz + 8]);
   for (let i = 0; i < 46; i++) {
@@ -48,16 +44,13 @@ export function createPedestrians(G) {
     ped.mode = 'shop';
   }
   for (let i = 0; i < 20; i++) addPed(range(rng, -130, 130), range(rng, 140, 165), 'citizen');
-  // sunbathers lying on the beach towels
   for (const spot of G.beachProps.slice(0, 10)) {
     const ped = addPed(spot.x, spot.z, 'swim', 'lie');
     ped.fig.group.rotation.x = -Math.PI / 2 + 0.06;
     ped.fig.group.position.y = groundY(spot.x, spot.z) + 0.18;
     ped.fig.blob.visible = false; // lying flat: the ground blob would stand on edge
   }
-  // volleyball pair bouncing by the net
   addPed(66, shoreZ(66) - 12, 'swim', 'stand'); addPed(74, shoreZ(74) - 12, 'swim', 'stand');
-  // swimmers: placed where the shared shoreline fn says depth is 0.9-1.7 m
   G.swimmers = [];
   for (let i = 0; i < 9; i++) {
     const x = -120 + i * 28 + range(rng, -6, 6);
