@@ -1,4 +1,4 @@
-// Vehicles: home-designed bodies at real sizes, traffic AI, the island
+
 const THREE = window.THREE;
 import { CAR_TYPES, WORLD, groundY, shoreZ, WATER_Y } from './config.js';
 import { createDurability, applyImpact, tickDurability, powerFactor } from './durability.js';
@@ -21,449 +21,449 @@ const HEAD_D = new THREE.MeshStandardMaterial({ color: 0xfff3cf, roughness: 0.25
 const TAIL_D = new THREE.MeshStandardMaterial({ color: 0xd8232a, roughness: 0.25, metalness: 0.1, emissive: 0xff2a20, emissiveIntensity: 0.55 });
 let policeTex = null;
 function policeDoorTex() {
-  if (policeTex) return policeTex;
-  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128;
-  const cx = cv.getContext('2d');
-  cx.fillStyle = '#f4f6f8'; cx.fillRect(0, 0, 512, 128);
-  cx.fillStyle = '#16233c'; cx.font = '900 82px Arial, sans-serif';
-  cx.textAlign = 'center'; cx.textBaseline = 'middle';
-  cx.fillText('P O L I C E', 256, 68);
-  policeTex = new THREE.CanvasTexture(cv);
-  return policeTex;
+ if (policeTex) return policeTex;
+ const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128;
+ const cx = cv.getContext('2d');
+ cx.fillStyle = '#f4f6f8'; cx.fillRect(0, 0, 512, 128);
+ cx.fillStyle = '#16233c'; cx.font = '900 82px Arial, sans-serif';
+ cx.textAlign = 'center'; cx.textBaseline = 'middle';
+ cx.fillText('P O L I C E', 256, 68);
+ policeTex = new THREE.CanvasTexture(cv);
+ return policeTex;
 }
 function makeWheel(r, w) {
-  const wg = new THREE.Group();
-  const cyl = (rad, wid, m) => {
-    const q = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, wid, 18), m);
-    q.rotation.z = Math.PI / 2; wg.add(q); return q;
-  };
-  cyl(r, w, TIRE_D); cyl(r * 0.58, w * 1.06, RIM_D); cyl(r * 0.17, w * 1.16, HUB_D);
-  const s1 = new THREE.Mesh(new THREE.BoxGeometry(w * 1.08, r * 1.02, r * 0.15), RIM_D); wg.add(s1);
-  const s2 = new THREE.Mesh(new THREE.BoxGeometry(w * 1.08, r * 0.15, r * 1.02), RIM_D); wg.add(s2);
-  return wg;
+ const wg = new THREE.Group();
+ const cyl = (rad, wid, m) => {
+  const q = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, wid, 18), m);
+  q.rotation.z = Math.PI / 2; wg.add(q); return q;
+ };
+ cyl(r, w, TIRE_D); cyl(r * 0.58, w * 1.06, RIM_D); cyl(r * 0.17, w * 1.16, HUB_D);
+ const s1 = new THREE.Mesh(new THREE.BoxGeometry(w * 1.08, r * 1.02, r * 0.15), RIM_D); wg.add(s1);
+ const s2 = new THREE.Mesh(new THREE.BoxGeometry(w * 1.08, r * 0.15, r * 1.02), RIM_D); wg.add(s2);
+ return wg;
 }
 export function buildVehicleMesh(type, color) {
-  const spec = CAR_TYPES[type];
-  const g = new THREE.Group();
-  const paint = std(color, 0.32, { metalness: 0.5 });
-  const glass = GLASS_D;
-  const dark = TRIM_D;
-  const L = spec.len, W = spec.wid, H = spec.hgt;
-  const bodyMats = [paint];
-  const B = (w, h, d, m, x, y, z, rx = 0) => {
-    const q = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
-    q.position.set(x, y, z); if (rx) q.rotation.x = rx; g.add(q); return q;
-  };
-  const CYL = (r, len, m, x, y, z, axis = 'z') => {
-    const q = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 12), m);
-    if (axis === 'z') q.rotation.x = Math.PI / 2; else if (axis === 'x') q.rotation.z = Math.PI / 2;
-    q.position.set(x, y, z); g.add(q); return q;
-  };
-  const wheels = [];
-  const addWheel = (r, w, x, z) => {
-    if (type !== 'moto') {
-      const a = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.27, r * 1.27, 0.03, 18), ARCH_D);
-      a.rotation.z = Math.PI / 2; a.position.set(Math.sign(x) * (W / 2 + 0.004), 0.37, z); g.add(a);
-    }
-    const wg = makeWheel(r, w); wg.position.set(x, 0.36, z); g.add(wg); wheels.push(wg);
-  };
-  const mirrorPair = (y, z) => {
-    for (const sx of [-1, 1]) {
-      B(0.15, 0.04, 0.04, dark, sx * (W / 2 + 0.05), y, z);
-      B(0.045, 0.12, 0.19, paint, sx * (W / 2 + 0.13), y + 0.02, z);
-    }
-  };
-  const doorDetail = (waist) => {
-    for (const sx of [-1, 1]) {
-      const fx = sx * (W / 2 + 0.006);
-      B(0.02, H * 0.36, 0.025, dark, fx, H * 0.44, L * 0.03);
-      B(0.02, H * 0.36, 0.025, dark, fx, H * 0.44, -L * 0.21);
-      B(0.025, 0.04, 0.17, CHROME_D, fx, H * 0.6, L * 0.11);
-      B(0.025, 0.04, 0.17, CHROME_D, fx, H * 0.6, -L * 0.13);
-      if (waist) B(0.015, 0.03, L * 0.42, CHROME_D, fx, H * 0.56, 0);
-      B(0.04, 0.09, L * 0.52, dark, sx * (W / 2 - 0.02), H * 0.13, 0);
-    }
-  };
-  const glasshouse = (rakeR, roofMat) => {
-    B(W * 0.84, H * 0.4, L * 0.44, dark, 0, H * 0.78, -L * 0.04);
-    B(W * 0.8, H * 0.5, 0.04, glass, 0, H * 0.79, L * 0.145, -0.42);
-    B(W * 0.8, H * 0.46, 0.04, glass, 0, H * 0.79, -L * 0.225, rakeR);
-    for (const sx of [-1, 1]) {
-      B(0.03, H * 0.3, L * 0.16, glass, sx * W * 0.425, H * 0.8, L * 0.055);
-      B(0.03, H * 0.3, L * 0.14, glass, sx * W * 0.425, H * 0.8, -L * 0.15);
-      B(0.045, H * 0.34, 0.06, paint, sx * W * 0.425, H * 0.8, -L * 0.028);
-      const ap = B(0.045, H * 0.44, 0.055, paint, sx * W * 0.42, H * 0.79, L * 0.148); ap.rotation.x = -0.42;
-    }
-    B(W * 0.8, 0.07, L * 0.34, roofMat, 0, H * 1.0, -L * 0.05);
-  };
-  const faceDetail = () => {
-    for (const sx of [-1, 1]) {
-      const hl = B(0.4, 0.11, 0.05, HEAD_D, sx * W * 0.32, H * 0.37, L * 0.638); hl.rotation.x = 0.18;
-      B(0.4, 0.1, 0.05, TAIL_D, sx * W * 0.32, H * 0.44, -L / 2 - 0.02);
-    }
-    const gr = B(W * 0.5, 0.13, 0.04, dark, 0, H * 0.3, L * 0.645); gr.rotation.x = 0.18;
-    const gs = B(W * 0.5, 0.03, 0.045, CHROME_D, 0, H * 0.375, L * 0.63); gs.rotation.x = 0.18;
-    B(W * 0.96, 0.15, 0.12, dark, 0, H * 0.15, L * 0.585);
-    B(W * 0.96, 0.15, 0.12, dark, 0, H * 0.15, -L * 0.53);
-    B(0.44, 0.12, 0.02, PLATE_D, 0, H * 0.32, -L / 2 - 0.03);
-    CYL(0.045, 0.22, CHROME_D, W * 0.28, H * 0.11, -L * 0.53);
-  };
-  if (type === 'moto') {
-    const frame = B(0.32, 0.4, L * 0.7, paint, 0, 0.55, 0);
-    bodyMats.push(frame.material);
-    const tank = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), paint); tank.position.set(0, 0.78, 0.15); tank.scale.set(0.8, 0.6, 1.6); g.add(tank);
-    B(0.3, 0.26, 0.44, ENGINE_D, 0, 0.4, 0.02);
-    B(0.3, 0.09, 0.62, dark, 0, 0.84, -0.4);
-    for (const sx of [-1, 1]) {
-      const fk = CYL(0.028, 0.8, CHROME_D, sx * 0.08, 0.62, 0.72, 'y'); fk.rotation.x = -0.42;
-      B(0.06, 0.08, 0.78, dark, sx * 0.12, 0.36, -0.44);
-      const gr2 = CYL(0.032, 0.15, dark, sx * 0.31, 1.0, 0.52, 'x');
-    }
-    CYL(0.025, 0.56, CHROME_D, 0, 1.0, 0.52, 'x');
-    CYL(0.085, 0.1, dark, 0, 0.86, 0.66);
-    CYL(0.068, 0.03, HEAD_D, 0, 0.86, 0.72);
-    CYL(0.035, 0.42, CHROME_D, 0.15, 0.34, 0.28);
-    CYL(0.055, 0.72, CHROME_D, 0.17, 0.3, -0.4);
-    B(0.3, 0.04, 0.46, paint, 0, 0.72, 0.84, -0.2);
-    B(0.28, 0.04, 0.42, paint, 0, 0.7, -0.92, 0.25);
-    B(0.13, 0.07, 0.03, TAIL_D, 0, 0.74, -1.1);
-    B(0.19, 0.14, 0.02, PLATE_D, 0, 0.56, -1.13, 0.3);
-    addWheel(0.33, 0.15, 0, 0.85); addWheel(0.33, 0.19, 0, -0.85);
-  } else {
-    const lower = new THREE.Mesh(new THREE.BoxGeometry(W, H * 0.52, L), paint);
-    lower.position.y = H * 0.42; g.add(lower);
-    const nose = new THREE.Mesh(new THREE.BoxGeometry(W * 0.94, H * 0.3, L * 0.2), paint);
-    nose.position.set(0, H * 0.36, L * 0.55); nose.rotation.x = 0.18; g.add(nose);
-    if (type === 'truck') {
-      const cab = new THREE.Mesh(new THREE.BoxGeometry(W, H * 0.62, L * 0.3), paint); cab.position.set(0, H * 0.75, L * 0.32); g.add(cab);
-      const box = new THREE.Mesh(new THREE.BoxGeometry(W * 1.02, H * 0.95, L * 0.58), std(0xe8e6e0, 0.7)); box.position.set(0, H * 0.62, -L * 0.2); g.add(box);
-      bodyMats.push(box.material);
-      B(W * 0.86, H * 0.24, 0.05, glass, 0, H * 0.84, L * 0.475, -0.12);
-      for (const sx of [-1, 1]) {
-        B(0.03, H * 0.2, L * 0.18, glass, sx * (W / 2 + 0.005), H * 0.84, L * 0.36);
-        B(0.02, H * 0.4, 0.025, dark, sx * (W / 2 + 0.006), H * 0.58, L * 0.28);
-      }
-      mirrorPair(H * 0.88, L * 0.44);
-      const cg = B(W * 0.6, H * 0.2, 0.05, CHROME_D, 0, H * 0.4, L * 0.635); cg.rotation.x = 0.18;
-      B(W * 0.98, 0.18, 0.1, CHROME_D, 0, H * 0.13, L * 0.6);
-      CYL(0.055, H * 0.85, CHROME_D, W / 2 - 0.16, H * 0.72, L * 0.13, 'y');
-      for (const ry of [0.35, 0.58, 0.81]) B(W * 1.03, 0.05, L * 0.57, RIB_D, 0, H * ry, -L * 0.2);
-      B(0.03, H * 0.8, 0.03, dark, 0, H * 0.6, -L * 0.495);
-      faceDetail();
-    } else if (type === 'van') {
-      const cab = new THREE.Mesh(new THREE.BoxGeometry(W * 0.98, H * 0.55, L * 0.85), paint); cab.position.set(0, H * 0.72, -L * 0.02); g.add(cab);
-      B(W * 0.88, H * 0.3, 0.05, glass, 0, H * 0.8, L * 0.415, -0.28);
-      for (const sx of [-1, 1]) {
-        B(0.03, H * 0.2, L * 0.15, glass, sx * W * 0.495, H * 0.82, L * 0.29);
-        B(0.02, H * 0.52, 0.025, dark, sx * (W / 2 + 0.006), H * 0.5, -L * 0.02);
-        B(0.025, 0.04, 0.16, CHROME_D, sx * (W / 2 + 0.006), H * 0.62, L * 0.03);
-        B(W * 0.3, H * 0.18, 0.03, glass, sx * W * 0.2, H * 0.78, -L / 2 - 0.01);
-      }
-      B(0.03, H * 0.6, 0.03, dark, 0, H * 0.55, -L / 2 - 0.01);
-      mirrorPair(H * 0.84, L * 0.36);
-      faceDetail();
-    } else if (type === 'swat') {
-      const hull = new THREE.Mesh(new THREE.BoxGeometry(W * 0.98, H * 0.6, L * 0.9), paint); hull.position.set(0, H * 0.68, -L * 0.03); g.add(hull);
-      for (const sx of [-1, 1]) {
-        B(W * 0.34, H * 0.18, 0.05, glass, sx * W * 0.19, H * 0.84, L * 0.43, -0.16);
-        for (let i = 0; i < 3; i++) B(0.03, 0.15, 0.15, dark, sx * (W / 2 + 0.005), H * 0.7, L * 0.16 - i * L * 0.17);
-        B(0.34, 0.06, L * 0.62, dark, sx * (W / 2 + 0.12), H * 0.16, 0);
-        B(0.025, 0.05, L * 0.3, WHITE_D, sx * (W / 2 + 0.006), H * 0.45, -L * 0.05);
-      }
-      B(W * 0.92, 0.34, 0.16, dark, 0, H * 0.2, L * 0.52);
-      CYL(0.55, 0.12, dark, 0, H * 1.0, -L * 0.08, 'y');
-      const bar = new THREE.Group(); bar.position.set(0, H + 0.08, L * 0.18);
-      const bb = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.09, 0.3), dark); bar.add(bb);
-      const red = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.15, 0.27), new THREE.MeshBasicMaterial({ color: 0xff2a20 })); red.position.x = -0.3; bar.add(red);
-      const blu = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.15, 0.27), new THREE.MeshBasicMaterial({ color: 0x2255ff })); blu.position.x = 0.3; bar.add(blu);
-      g.add(bar); g.userData.lightbar = { red, blu };
-      faceDetail();
-    } else if (type === 'roadster') {
-      B(W * 0.8, H * 0.42, 0.04, glass, 0, H * 0.82, L * 0.17, -0.42);
-      B(W * 0.86, H * 0.3, L * 0.3, paint, 0, H * 0.62, -L * 0.3);
-      const seatM = std(0xb03030, 0.7);
-      for (const sx of [-1, 1]) {
-        B(0.42, 0.34, 0.4, seatM, sx * W * 0.21, H * 0.52, -L * 0.02);
-        B(0.42, 0.4, 0.12, seatM, sx * W * 0.21, H * 0.66, -L * 0.2);
-        const hoop = CYL(0.045, 0.42, CHROME_D, sx * W * 0.21, H * 0.78, -L * 0.26, 'y'); hoop.rotation.x = 0.25;
-      }
-      faceDetail(); doorDetail(false); mirrorPair(H * 0.8, L * 0.15);
-    } else {
-      glasshouse(type === 'coupe' || type === 'hatch' ? 0.62 : type === 'sport' ? 0.55 : type === 'city' ? 0.25 : 0.45,
-        type === 'police' || type === 'taxi' ? WHITE_D : type === 'city' ? dark : paint);
-      faceDetail();
-      doorDetail(type !== 'police');
-      mirrorPair(H * 0.84, L * 0.16);
-      if (type === 'suv') {
-        for (const sx of [-1, 1]) {
-          B(0.05, 0.05, L * 0.4, dark, sx * W * 0.3, H * 1.05, -L * 0.05);
-          B(0.3, 0.07, L * 0.55, dark, sx * (W / 2 + 0.03), H * 0.16, 0);
-        }
-        B(W * 0.62, 0.16, L * 0.34, dark, 0, H * 1.1, -L * 0.05);
-      }
-      if (type === 'hatch' || type === 'city') {
-        const lip = B(W * 0.66, 0.04, 0.2, dark, 0, H * 1.02, -L * 0.3); lip.rotation.x = -0.25;
-      }
-      if (type === 'limo') {
-        for (const sx of [-1, 1]) {
-          B(0.03, H * 0.2, L * 0.1, glass, sx * W * 0.425, H * 0.8, -L * 0.33);
-          B(0.05, 0.16, 0.05, std(0xd8342c, 0.5), sx * W * 0.3, H * 0.62, L * 0.47);
-        }
-        B(W * 0.8, 0.06, L * 0.2, paint, 0, H * 1.0, -L * 0.3);
-      }
-      if (type === 'sport') {
-        for (const sx of [-1, 1]) B(0.07, 0.16, 0.07, dark, sx * W * 0.28, H * 0.72, -L * 0.44);
-        const sp = B(W * 0.78, 0.045, 0.3, dark, 0, H * 0.81, -L * 0.45); sp.rotation.x = -0.1;
-        B(W * 0.9, 0.06, 0.3, dark, 0, H * 0.1, L * 0.52);
-        CYL(0.045, 0.22, CHROME_D, -W * 0.28, H * 0.11, -L * 0.53);
-      }
-      if (type === 'coupe') {
-        const lip = B(W * 0.7, 0.04, 0.22, dark, 0, H * 0.72, -L * 0.46); lip.rotation.x = -0.2;
-        CYL(0.045, 0.22, CHROME_D, -W * 0.28, H * 0.11, -L * 0.53);
-      }
-      if (type === 'taxi') {
-        const sgn = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.3), new THREE.MeshBasicMaterial({ color: 0xffe14c }));
-        sgn.position.set(0, H + 0.12, 0); g.add(sgn);
-        for (const sx of [-1, 1]) B(0.02, 0.09, L * 0.6, dark, sx * (W / 2 + 0.005), H * 0.33, 0);
-      }
-      if (type === 'police') {
-        const bar = new THREE.Group(); bar.position.set(0, H + 0.1, 0);
-        const base = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.09, 0.34), dark); bar.add(base);
-        const red = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.16, 0.3), new THREE.MeshBasicMaterial({ color: 0xff2a20 })); red.position.x = -0.28; bar.add(red);
-        const blu = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.16, 0.3), new THREE.MeshBasicMaterial({ color: 0x2255ff })); blu.position.x = 0.28; bar.add(blu);
-        g.add(bar); g.userData.lightbar = { red, blu };
-        for (const sx of [-1, 1]) {
-          B(0.03, H * 0.3, L * 0.46, WHITE_D, sx * (W / 2 + 0.006), H * 0.47, -L * 0.03);
-          const plate = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.4, H * 0.2), new THREE.MeshBasicMaterial({ map: policeDoorTex() }));
-          plate.position.set(sx * (W / 2 + 0.028), H * 0.47, -L * 0.03); plate.rotation.y = sx * Math.PI / 2; g.add(plate);
-          B(0.08, 0.42, 0.07, dark, sx * W * 0.26, H * 0.3, L * 0.68);
-        }
-        B(W * 0.66, 0.08, 0.06, CHROME_D, 0, H * 0.42, L * 0.7);
-        B(W * 0.66, 0.08, 0.06, CHROME_D, 0, H * 0.2, L * 0.7);
-        const spot = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), CHROME_D);
-        spot.position.set(-W / 2 - 0.04, H * 0.92, L * 0.19); g.add(spot);
-      }
-    }
-    const ww = type === 'truck' || type === 'swat' ? 0.29 : 0.24;
-    const wr = type === 'suv' || type === 'swat' ? 0.42 : 0.36;
-    for (const [wx, wz] of [[-W / 2 + 0.1, L * 0.32], [W / 2 - 0.1, L * 0.32], [-W / 2 + 0.1, -L * 0.32], [W / 2 - 0.1, -L * 0.32]]) addWheel(wr, ww, wx, wz);
+ const spec = CAR_TYPES[type];
+ const g = new THREE.Group();
+ const paint = std(color, 0.32, { metalness: 0.5 });
+ const glass = GLASS_D;
+ const dark = TRIM_D;
+ const L = spec.len, W = spec.wid, H = spec.hgt;
+ const bodyMats = [paint];
+ const B = (w, h, d, m, x, y, z, rx = 0) => {
+  const q = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+  q.position.set(x, y, z); if (rx) q.rotation.x = rx; g.add(q); return q;
+ };
+ const CYL = (r, len, m, x, y, z, axis = 'z') => {
+  const q = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 12), m);
+  if (axis === 'z') q.rotation.x = Math.PI / 2; else if (axis === 'x') q.rotation.z = Math.PI / 2;
+  q.position.set(x, y, z); g.add(q); return q;
+ };
+ const wheels = [];
+ const addWheel = (r, w, x, z) => {
+  if (type !== 'moto') {
+   const a = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.27, r * 1.27, 0.03, 18), ARCH_D);
+   a.rotation.z = Math.PI / 2; a.position.set(Math.sign(x) * (W / 2 + 0.004), 0.37, z); g.add(a);
   }
-  g.userData.wheels = wheels;
-  g.userData.bodyMats = bodyMats;
-  return g;
+  const wg = makeWheel(r, w); wg.position.set(x, 0.36, z); g.add(wg); wheels.push(wg);
+ };
+ const mirrorPair = (y, z) => {
+  for (const sx of [-1, 1]) {
+   B(0.15, 0.04, 0.04, dark, sx * (W / 2 + 0.05), y, z);
+   B(0.045, 0.12, 0.19, paint, sx * (W / 2 + 0.13), y + 0.02, z);
+  }
+ };
+ const doorDetail = (waist) => {
+  for (const sx of [-1, 1]) {
+   const fx = sx * (W / 2 + 0.006);
+   B(0.02, H * 0.36, 0.025, dark, fx, H * 0.44, L * 0.03);
+   B(0.02, H * 0.36, 0.025, dark, fx, H * 0.44, -L * 0.21);
+   B(0.025, 0.04, 0.17, CHROME_D, fx, H * 0.6, L * 0.11);
+   B(0.025, 0.04, 0.17, CHROME_D, fx, H * 0.6, -L * 0.13);
+   if (waist) B(0.015, 0.03, L * 0.42, CHROME_D, fx, H * 0.56, 0);
+   B(0.04, 0.09, L * 0.52, dark, sx * (W / 2 - 0.02), H * 0.13, 0);
+  }
+ };
+ const glasshouse = (rakeR, roofMat) => {
+  B(W * 0.84, H * 0.4, L * 0.44, dark, 0, H * 0.78, -L * 0.04);
+  B(W * 0.8, H * 0.5, 0.04, glass, 0, H * 0.79, L * 0.145, -0.42);
+  B(W * 0.8, H * 0.46, 0.04, glass, 0, H * 0.79, -L * 0.225, rakeR);
+  for (const sx of [-1, 1]) {
+   B(0.03, H * 0.3, L * 0.16, glass, sx * W * 0.425, H * 0.8, L * 0.055);
+   B(0.03, H * 0.3, L * 0.14, glass, sx * W * 0.425, H * 0.8, -L * 0.15);
+   B(0.045, H * 0.34, 0.06, paint, sx * W * 0.425, H * 0.8, -L * 0.028);
+   const ap = B(0.045, H * 0.44, 0.055, paint, sx * W * 0.42, H * 0.79, L * 0.148); ap.rotation.x = -0.42;
+  }
+  B(W * 0.8, 0.07, L * 0.34, roofMat, 0, H * 1.0, -L * 0.05);
+ };
+ const faceDetail = () => {
+  for (const sx of [-1, 1]) {
+   const hl = B(0.4, 0.11, 0.05, HEAD_D, sx * W * 0.32, H * 0.37, L * 0.638); hl.rotation.x = 0.18;
+   B(0.4, 0.1, 0.05, TAIL_D, sx * W * 0.32, H * 0.44, -L / 2 - 0.02);
+  }
+  const gr = B(W * 0.5, 0.13, 0.04, dark, 0, H * 0.3, L * 0.645); gr.rotation.x = 0.18;
+  const gs = B(W * 0.5, 0.03, 0.045, CHROME_D, 0, H * 0.375, L * 0.63); gs.rotation.x = 0.18;
+  B(W * 0.96, 0.15, 0.12, dark, 0, H * 0.15, L * 0.585);
+  B(W * 0.96, 0.15, 0.12, dark, 0, H * 0.15, -L * 0.53);
+  B(0.44, 0.12, 0.02, PLATE_D, 0, H * 0.32, -L / 2 - 0.03);
+  CYL(0.045, 0.22, CHROME_D, W * 0.28, H * 0.11, -L * 0.53);
+ };
+ if (type === 'moto') {
+  const frame = B(0.32, 0.4, L * 0.7, paint, 0, 0.55, 0);
+  bodyMats.push(frame.material);
+  const tank = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), paint); tank.position.set(0, 0.78, 0.15); tank.scale.set(0.8, 0.6, 1.6); g.add(tank);
+  B(0.3, 0.26, 0.44, ENGINE_D, 0, 0.4, 0.02);
+  B(0.3, 0.09, 0.62, dark, 0, 0.84, -0.4);
+  for (const sx of [-1, 1]) {
+   const fk = CYL(0.028, 0.8, CHROME_D, sx * 0.08, 0.62, 0.72, 'y'); fk.rotation.x = -0.42;
+   B(0.06, 0.08, 0.78, dark, sx * 0.12, 0.36, -0.44);
+   const gr2 = CYL(0.032, 0.15, dark, sx * 0.31, 1.0, 0.52, 'x');
+  }
+  CYL(0.025, 0.56, CHROME_D, 0, 1.0, 0.52, 'x');
+  CYL(0.085, 0.1, dark, 0, 0.86, 0.66);
+  CYL(0.068, 0.03, HEAD_D, 0, 0.86, 0.72);
+  CYL(0.035, 0.42, CHROME_D, 0.15, 0.34, 0.28);
+  CYL(0.055, 0.72, CHROME_D, 0.17, 0.3, -0.4);
+  B(0.3, 0.04, 0.46, paint, 0, 0.72, 0.84, -0.2);
+  B(0.28, 0.04, 0.42, paint, 0, 0.7, -0.92, 0.25);
+  B(0.13, 0.07, 0.03, TAIL_D, 0, 0.74, -1.1);
+  B(0.19, 0.14, 0.02, PLATE_D, 0, 0.56, -1.13, 0.3);
+  addWheel(0.33, 0.15, 0, 0.85); addWheel(0.33, 0.19, 0, -0.85);
+ } else {
+  const lower = new THREE.Mesh(new THREE.BoxGeometry(W, H * 0.52, L), paint);
+  lower.position.y = H * 0.42; g.add(lower);
+  const nose = new THREE.Mesh(new THREE.BoxGeometry(W * 0.94, H * 0.3, L * 0.2), paint);
+  nose.position.set(0, H * 0.36, L * 0.55); nose.rotation.x = 0.18; g.add(nose);
+  if (type === 'truck') {
+   const cab = new THREE.Mesh(new THREE.BoxGeometry(W, H * 0.62, L * 0.3), paint); cab.position.set(0, H * 0.75, L * 0.32); g.add(cab);
+   const box = new THREE.Mesh(new THREE.BoxGeometry(W * 1.02, H * 0.95, L * 0.58), std(0xe8e6e0, 0.7)); box.position.set(0, H * 0.62, -L * 0.2); g.add(box);
+   bodyMats.push(box.material);
+   B(W * 0.86, H * 0.24, 0.05, glass, 0, H * 0.84, L * 0.475, -0.12);
+   for (const sx of [-1, 1]) {
+    B(0.03, H * 0.2, L * 0.18, glass, sx * (W / 2 + 0.005), H * 0.84, L * 0.36);
+    B(0.02, H * 0.4, 0.025, dark, sx * (W / 2 + 0.006), H * 0.58, L * 0.28);
+   }
+   mirrorPair(H * 0.88, L * 0.44);
+   const cg = B(W * 0.6, H * 0.2, 0.05, CHROME_D, 0, H * 0.4, L * 0.635); cg.rotation.x = 0.18;
+   B(W * 0.98, 0.18, 0.1, CHROME_D, 0, H * 0.13, L * 0.6);
+   CYL(0.055, H * 0.85, CHROME_D, W / 2 - 0.16, H * 0.72, L * 0.13, 'y');
+   for (const ry of [0.35, 0.58, 0.81]) B(W * 1.03, 0.05, L * 0.57, RIB_D, 0, H * ry, -L * 0.2);
+   B(0.03, H * 0.8, 0.03, dark, 0, H * 0.6, -L * 0.495);
+   faceDetail();
+  } else if (type === 'van') {
+   const cab = new THREE.Mesh(new THREE.BoxGeometry(W * 0.98, H * 0.55, L * 0.85), paint); cab.position.set(0, H * 0.72, -L * 0.02); g.add(cab);
+   B(W * 0.88, H * 0.3, 0.05, glass, 0, H * 0.8, L * 0.415, -0.28);
+   for (const sx of [-1, 1]) {
+    B(0.03, H * 0.2, L * 0.15, glass, sx * W * 0.495, H * 0.82, L * 0.29);
+    B(0.02, H * 0.52, 0.025, dark, sx * (W / 2 + 0.006), H * 0.5, -L * 0.02);
+    B(0.025, 0.04, 0.16, CHROME_D, sx * (W / 2 + 0.006), H * 0.62, L * 0.03);
+    B(W * 0.3, H * 0.18, 0.03, glass, sx * W * 0.2, H * 0.78, -L / 2 - 0.01);
+   }
+   B(0.03, H * 0.6, 0.03, dark, 0, H * 0.55, -L / 2 - 0.01);
+   mirrorPair(H * 0.84, L * 0.36);
+   faceDetail();
+  } else if (type === 'swat') {
+   const hull = new THREE.Mesh(new THREE.BoxGeometry(W * 0.98, H * 0.6, L * 0.9), paint); hull.position.set(0, H * 0.68, -L * 0.03); g.add(hull);
+   for (const sx of [-1, 1]) {
+    B(W * 0.34, H * 0.18, 0.05, glass, sx * W * 0.19, H * 0.84, L * 0.43, -0.16);
+    for (let i = 0; i < 3; i++) B(0.03, 0.15, 0.15, dark, sx * (W / 2 + 0.005), H * 0.7, L * 0.16 - i * L * 0.17);
+    B(0.34, 0.06, L * 0.62, dark, sx * (W / 2 + 0.12), H * 0.16, 0);
+    B(0.025, 0.05, L * 0.3, WHITE_D, sx * (W / 2 + 0.006), H * 0.45, -L * 0.05);
+   }
+   B(W * 0.92, 0.34, 0.16, dark, 0, H * 0.2, L * 0.52);
+   CYL(0.55, 0.12, dark, 0, H * 1.0, -L * 0.08, 'y');
+   const bar = new THREE.Group(); bar.position.set(0, H + 0.08, L * 0.18);
+   const bb = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.09, 0.3), dark); bar.add(bb);
+   const red = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.15, 0.27), new THREE.MeshBasicMaterial({ color: 0xff2a20 })); red.position.x = -0.3; bar.add(red);
+   const blu = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.15, 0.27), new THREE.MeshBasicMaterial({ color: 0x2255ff })); blu.position.x = 0.3; bar.add(blu);
+   g.add(bar); g.userData.lightbar = { red, blu };
+   faceDetail();
+  } else if (type === 'roadster') {
+   B(W * 0.8, H * 0.42, 0.04, glass, 0, H * 0.82, L * 0.17, -0.42);
+   B(W * 0.86, H * 0.3, L * 0.3, paint, 0, H * 0.62, -L * 0.3);
+   const seatM = std(0xb03030, 0.7);
+   for (const sx of [-1, 1]) {
+    B(0.42, 0.34, 0.4, seatM, sx * W * 0.21, H * 0.52, -L * 0.02);
+    B(0.42, 0.4, 0.12, seatM, sx * W * 0.21, H * 0.66, -L * 0.2);
+    const hoop = CYL(0.045, 0.42, CHROME_D, sx * W * 0.21, H * 0.78, -L * 0.26, 'y'); hoop.rotation.x = 0.25;
+   }
+   faceDetail(); doorDetail(false); mirrorPair(H * 0.8, L * 0.15);
+  } else {
+   glasshouse(type === 'coupe' || type === 'hatch' ? 0.62 : type === 'sport' ? 0.55 : type === 'city' ? 0.25 : 0.45,
+    type === 'police' || type === 'taxi' ? WHITE_D : type === 'city' ? dark : paint);
+   faceDetail();
+   doorDetail(type !== 'police');
+   mirrorPair(H * 0.84, L * 0.16);
+   if (type === 'suv') {
+    for (const sx of [-1, 1]) {
+     B(0.05, 0.05, L * 0.4, dark, sx * W * 0.3, H * 1.05, -L * 0.05);
+     B(0.3, 0.07, L * 0.55, dark, sx * (W / 2 + 0.03), H * 0.16, 0);
+    }
+    B(W * 0.62, 0.16, L * 0.34, dark, 0, H * 1.1, -L * 0.05);
+   }
+   if (type === 'hatch' || type === 'city') {
+    const lip = B(W * 0.66, 0.04, 0.2, dark, 0, H * 1.02, -L * 0.3); lip.rotation.x = -0.25;
+   }
+   if (type === 'limo') {
+    for (const sx of [-1, 1]) {
+     B(0.03, H * 0.2, L * 0.1, glass, sx * W * 0.425, H * 0.8, -L * 0.33);
+     B(0.05, 0.16, 0.05, std(0xd8342c, 0.5), sx * W * 0.3, H * 0.62, L * 0.47);
+    }
+    B(W * 0.8, 0.06, L * 0.2, paint, 0, H * 1.0, -L * 0.3);
+   }
+   if (type === 'sport') {
+    for (const sx of [-1, 1]) B(0.07, 0.16, 0.07, dark, sx * W * 0.28, H * 0.72, -L * 0.44);
+    const sp = B(W * 0.78, 0.045, 0.3, dark, 0, H * 0.81, -L * 0.45); sp.rotation.x = -0.1;
+    B(W * 0.9, 0.06, 0.3, dark, 0, H * 0.1, L * 0.52);
+    CYL(0.045, 0.22, CHROME_D, -W * 0.28, H * 0.11, -L * 0.53);
+   }
+   if (type === 'coupe') {
+    const lip = B(W * 0.7, 0.04, 0.22, dark, 0, H * 0.72, -L * 0.46); lip.rotation.x = -0.2;
+    CYL(0.045, 0.22, CHROME_D, -W * 0.28, H * 0.11, -L * 0.53);
+   }
+   if (type === 'taxi') {
+    const sgn = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.3), new THREE.MeshBasicMaterial({ color: 0xffe14c }));
+    sgn.position.set(0, H + 0.12, 0); g.add(sgn);
+    for (const sx of [-1, 1]) B(0.02, 0.09, L * 0.6, dark, sx * (W / 2 + 0.005), H * 0.33, 0);
+   }
+   if (type === 'police') {
+    const bar = new THREE.Group(); bar.position.set(0, H + 0.1, 0);
+    const base = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.09, 0.34), dark); bar.add(base);
+    const red = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.16, 0.3), new THREE.MeshBasicMaterial({ color: 0xff2a20 })); red.position.x = -0.28; bar.add(red);
+    const blu = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.16, 0.3), new THREE.MeshBasicMaterial({ color: 0x2255ff })); blu.position.x = 0.28; bar.add(blu);
+    g.add(bar); g.userData.lightbar = { red, blu };
+    for (const sx of [-1, 1]) {
+     B(0.03, H * 0.3, L * 0.46, WHITE_D, sx * (W / 2 + 0.006), H * 0.47, -L * 0.03);
+     const plate = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.4, H * 0.2), new THREE.MeshBasicMaterial({ map: policeDoorTex() }));
+     plate.position.set(sx * (W / 2 + 0.028), H * 0.47, -L * 0.03); plate.rotation.y = sx * Math.PI / 2; g.add(plate);
+     B(0.08, 0.42, 0.07, dark, sx * W * 0.26, H * 0.3, L * 0.68);
+    }
+    B(W * 0.66, 0.08, 0.06, CHROME_D, 0, H * 0.42, L * 0.7);
+    B(W * 0.66, 0.08, 0.06, CHROME_D, 0, H * 0.2, L * 0.7);
+    const spot = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), CHROME_D);
+    spot.position.set(-W / 2 - 0.04, H * 0.92, L * 0.19); g.add(spot);
+   }
+  }
+  const ww = type === 'truck' || type === 'swat' ? 0.29 : 0.24;
+  const wr = type === 'suv' || type === 'swat' ? 0.42 : 0.36;
+  for (const [wx, wz] of [[-W / 2 + 0.1, L * 0.32], [W / 2 - 0.1, L * 0.32], [-W / 2 + 0.1, -L * 0.32], [W / 2 - 0.1, -L * 0.32]]) addWheel(wr, ww, wx, wz);
+ }
+ g.userData.wheels = wheels;
+ g.userData.bodyMats = bodyMats;
+ return g;
 }
 export function createVehicle(G, type, x, z, angle, color) {
-  const spec = CAR_TYPES[type];
-  if (type === 'police' && color === undefined) color = 0x24406e;
-  if (type === 'taxi' && color === undefined) color = 0xf2b13c;
-  if (type === 'swat' && color === undefined) color = 0x4a5230;
-  if (type === 'limo' && color === undefined) color = 0x17181c;
-  const mesh = buildVehicleMesh(type, color ?? pick(G.rng, PALETTE));
-  mesh.position.set(x, groundY(x, z), z); mesh.rotation.y = angle;
-  G.scene.add(mesh);
-  const car = {
-    id: carSeq++, type, spec, mesh, x, z, angle, speed: 0,
-    dur: createDurability(spec), wheels: mesh.userData.wheels,
-    bodyMats: mesh.userData.bodyMats, smokeT: 0, fireT: 0, traffic: null,
-    driverFig: null, wrecked: false, trainHitDone: false,
-  };
-  mesh.userData.car = car;
-  G.cars.push(car);
-  return car;
+ const spec = CAR_TYPES[type];
+ if (type === 'police' && color === undefined) color = 0x24406e;
+ if (type === 'taxi' && color === undefined) color = 0xf2b13c;
+ if (type === 'swat' && color === undefined) color = 0x4a5230;
+ if (type === 'limo' && color === undefined) color = 0x17181c;
+ const mesh = buildVehicleMesh(type, color ?? pick(G.rng, PALETTE));
+ mesh.position.set(x, groundY(x, z), z); mesh.rotation.y = angle;
+ G.scene.add(mesh);
+ const car = {
+  id: carSeq++, type, spec, mesh, x, z, angle, speed: 0,
+  dur: createDurability(spec), wheels: mesh.userData.wheels,
+  bodyMats: mesh.userData.bodyMats, smokeT: 0, fireT: 0, traffic: null,
+  driverFig: null, wrecked: false, trainHitDone: false,
+ };
+ mesh.userData.car = car;
+ G.cars.push(car);
+ return car;
 }
 export function carHitsBuilding(G, car, nx, nz, nAngle) {
-  const spec = car.spec, r = spec.wid * 0.62;
-  for (const off of [-spec.len * 0.27, spec.len * 0.27]) {
-    const cx = nx + Math.sin(nAngle) * off, cz = nz + Math.cos(nAngle) * off;
-    for (const c of G.colliders) {
-      if (Math.abs(cx - c.x) < c.hx + r && Math.abs(cz - c.z) < c.hz + r) return c;
-    }
+ const spec = car.spec, r = spec.wid * 0.62;
+ for (const off of [-spec.len * 0.27, spec.len * 0.27]) {
+  const cx = nx + Math.sin(nAngle) * off, cz = nz + Math.cos(nAngle) * off;
+  for (const c of G.colliders) {
+   if (Math.abs(cx - c.x) < c.hx + r && Math.abs(cz - c.z) < c.hz + r) return c;
   }
-  return null;
+ }
+ return null;
 }
 export function damageCar(G, car, relSpeed, otherMass, opts = {}) {
-  if (!car || car.wrecked) return 0;
-  const before = car.dur.state;
-  const dmg = applyImpact(car.dur, relSpeed, otherMass, opts);
-  if (dmg > 0) {
-    const p = car.mesh.position;
-    if (relSpeed > 6) G.audio.crash();
-    if (car.dur.state !== before && car.dur.state === 'LIGHT') G.fx.sparks(p.x, p.y + 0.8, p.z, 8);
-    if (car.dur.exploded) explodeCar(G, car);
-    else if (dmg > 4) G.fx.sparks(p.x, p.y + 0.7, p.z, 5);
-  }
-  return dmg;
+ if (!car || car.wrecked) return 0;
+ const before = car.dur.state;
+ const dmg = applyImpact(car.dur, relSpeed, otherMass, opts);
+ if (dmg > 0) {
+  const p = car.mesh.position;
+  if (relSpeed > 6) G.audio.crash();
+  if (car.dur.state !== before && car.dur.state === 'LIGHT') G.fx.sparks(p.x, p.y + 0.8, p.z, 8);
+  if (car.dur.exploded) explodeCar(G, car);
+  else if (dmg > 4) G.fx.sparks(p.x, p.y + 0.7, p.z, 5);
+ }
+ return dmg;
 }
 export function explodeCar(G, car) {
-  if (car.wrecked) return;
-  car.wrecked = true; car.speed = 0;
-  const p = car.mesh.position;
-  G.fx.explosion(p.x, p.y + 0.5, p.z);
-  G.audio.boom();
-  G.shake = Math.min(1, (G.shake || 0) + 0.7);
-  for (const m of car.bodyMats) { m.color.set(0x17181c); m.roughness = 0.95; }
-  if (car.driverFig) {
-    car.driverFig.group.position.set(p.x + 2.4, groundY(p.x + 2.4, p.z + 1), p.z + 1);
-    car.driverFig = null;
-  }
-  if (G.player.car === car) G.player.eject();
-  for (const other of G.cars) {
-    if (other === car || other.wrecked) continue;
-    const d = other.mesh.position.distanceTo(p);
-    if (d < 7) setTimeout(() => damageCar(G, other, 16 * (1 - d / 9), 2000), 220);
-  }
-  if (G.onExplosion) G.onExplosion(car);
+ if (car.wrecked) return;
+ car.wrecked = true; car.speed = 0;
+ const p = car.mesh.position;
+ G.fx.explosion(p.x, p.y + 0.5, p.z);
+ G.audio.boom();
+ G.shake = Math.min(1, (G.shake || 0) + 0.7);
+ for (const m of car.bodyMats) { m.color.set(0x17181c); m.roughness = 0.95; }
+ if (car.driverFig) {
+  car.driverFig.group.position.set(p.x + 2.4, groundY(p.x + 2.4, p.z + 1), p.z + 1);
+  car.driverFig = null;
+ }
+ if (G.player.car === car) G.player.eject();
+ for (const other of G.cars) {
+  if (other === car || other.wrecked) continue;
+  const d = other.mesh.position.distanceTo(p);
+  if (d < 7) setTimeout(() => damageCar(G, other, 16 * (1 - d / 9), 2000), 220);
+ }
+ if (G.onExplosion) G.onExplosion(car);
 }
 function seedTraffic(G) {
-  const types = ['sedan', 'taxi', 'suv', 'hatch', 'van', 'city', 'limo', 'truck', 'sedan', 'coupe', 'hatch', 'moto', 'taxi', 'suv'];
-  const loops = [];
-  for (let i = 0; i < WORLD.avenues.length - 1; i++) for (let j = 0; j < WORLD.streets.length - 1; j++)
-    loops.push([WORLD.avenues[i], WORLD.avenues[i + 1], WORLD.streets[j], WORLD.streets[j + 1]]);
-  types.forEach((t, i) => {
-    const loop = loops[i % loops.length];
-    const car = createVehicle(G, t, loop[0] + 3.4, loop[2], 0);
-    car.traffic = { loop, edge: i % 4, dist: range(G.rng, 0, 40), speedMax: range(G.rng, 9, 13) };
-  });
-  const parkedTypes = ['sedan', 'roadster', 'suv', 'hatch', 'sport', 'city', 'coupe', 'truck', 'limo', 'van', 'sedan', 'hatch'];
-  parkedTypes.forEach((t, i) => {
-    const x = -120 + i * 21, z = 149.5;
-    createVehicle(G, t, x, z, Math.PI / 2);
-  });
-  WORLD.avenues.forEach((ax, i) => { if (i % 2 === 0) createVehicle(G, ['sedan', 'suv', 'hatch'][i % 3], ax - 3.4, 20 + i * 22, Math.PI); });
-  const kerbTypes = ['suv', 'coupe', 'hatch', 'van', 'city', 'sedan', 'taxi', 'roadster', 'coupe', 'limo'];
-  WORLD.avenues.forEach((ax, i) => {
-    createVehicle(G, kerbTypes[i % kerbTypes.length], ax + 5.9, -22 + i * 27, Math.PI);
-    createVehicle(G, kerbTypes[(i + 4) % kerbTypes.length], ax - 5.9, 138 - i * 6, 0);
-  });
-  [-96, -48, 60, 108].forEach((x, i) => createVehicle(G, kerbTypes[(i + 2) % kerbTypes.length], x, 162.6, -Math.PI / 2));
-  createVehicle(G, 'swat', 104, -16.2, Math.PI / 2);
-  createVehicle(G, 'police', 120, -16.2, Math.PI / 2);
-  createVehicle(G, 'van', -104, -16.2, Math.PI / 2, 0xf4f6f8);
-  createVehicle(G, 'sport', 89, 119.2, Math.PI / 2, 0xd8232a);
-  createVehicle(G, 'roadster', 103, 119.2, Math.PI / 2);
-  createVehicle(G, 'moto', -60, 146.5, 0.4);
-  createVehicle(G, 'moto', 12, 21, Math.PI);
+ const types = ['sedan', 'taxi', 'suv', 'hatch', 'van', 'city', 'limo', 'truck', 'sedan', 'coupe', 'hatch', 'moto', 'taxi', 'suv'];
+ const loops = [];
+ for (let i = 0; i < WORLD.avenues.length - 1; i++) for (let j = 0; j < WORLD.streets.length - 1; j++)
+  loops.push([WORLD.avenues[i], WORLD.avenues[i + 1], WORLD.streets[j], WORLD.streets[j + 1]]);
+ types.forEach((t, i) => {
+  const loop = loops[i % loops.length];
+  const car = createVehicle(G, t, loop[0] + 3.4, loop[2], 0);
+  car.traffic = { loop, edge: i % 4, dist: range(G.rng, 0, 40), speedMax: range(G.rng, 9, 13) };
+ });
+ const parkedTypes = ['sedan', 'roadster', 'suv', 'hatch', 'sport', 'city', 'coupe', 'truck', 'limo', 'van', 'sedan', 'hatch'];
+ parkedTypes.forEach((t, i) => {
+  const x = -120 + i * 21, z = 149.5;
+  createVehicle(G, t, x, z, Math.PI / 2);
+ });
+ WORLD.avenues.forEach((ax, i) => { if (i % 2 === 0) createVehicle(G, ['sedan', 'suv', 'hatch'][i % 3], ax - 3.4, 20 + i * 22, Math.PI); });
+ const kerbTypes = ['suv', 'coupe', 'hatch', 'van', 'city', 'sedan', 'taxi', 'roadster', 'coupe', 'limo'];
+ WORLD.avenues.forEach((ax, i) => {
+  createVehicle(G, kerbTypes[i % kerbTypes.length], ax + 5.9, -22 + i * 27, Math.PI);
+  createVehicle(G, kerbTypes[(i + 4) % kerbTypes.length], ax - 5.9, 138 - i * 6, 0);
+ });
+ [-96, -48, 60, 108].forEach((x, i) => createVehicle(G, kerbTypes[(i + 2) % kerbTypes.length], x, 162.6, -Math.PI / 2));
+ createVehicle(G, 'swat', 104, -16.2, Math.PI / 2);
+ createVehicle(G, 'police', 120, -16.2, Math.PI / 2);
+ createVehicle(G, 'van', -104, -16.2, Math.PI / 2, 0xf4f6f8);
+ createVehicle(G, 'sport', 89, 119.2, Math.PI / 2, 0xd8232a);
+ createVehicle(G, 'roadster', 103, 119.2, Math.PI / 2);
+ createVehicle(G, 'moto', -60, 146.5, 0.4);
+ createVehicle(G, 'moto', 12, 21, Math.PI);
 }
 function trafficStep(G, car, dt) {
-  const tr = car.traffic, [x0, x1, z0, z1] = tr.loop;
-  const lane = 3.4;
-  const edges = [
-    { from: [x0 + lane, z0], to: [x0 + lane, z1], ang: 0 },
-    { from: [x0 + lane, z1 + lane], to: [x1, z1 + lane], ang: Math.PI / 2 },
-    { from: [x1 - lane, z1], to: [x1 - lane, z0], ang: Math.PI },
-    { from: [x1 - lane, z0 - lane], to: [x0, z0 - lane], ang: -Math.PI / 2 },
-  ];
-  const e = edges[tr.edge];
-  const len = Math.hypot(e.to[0] - e.from[0], e.to[1] - e.from[1]);
-  const want = car.wrecked ? 0 : tr.speedMax * powerFactor(car.dur);
-  car.speed += Math.sign(want - car.speed) * Math.min(Math.abs(want - car.speed), 8 * dt);
-  tr.dist += car.speed * dt;
-  if (tr.dist >= len) { tr.dist = 0; tr.edge = (tr.edge + 1) % 4; }
-  const f = len > 0 ? tr.dist / len : 0;
-  car.x = e.from[0] + (e.to[0] - e.from[0]) * f;
-  car.z = e.from[1] + (e.to[1] - e.from[1]) * f;
-  car.angle = e.ang;
+ const tr = car.traffic, [x0, x1, z0, z1] = tr.loop;
+ const lane = 3.4;
+ const edges = [
+  { from: [x0 + lane, z0], to: [x0 + lane, z1], ang: 0 },
+  { from: [x0 + lane, z1 + lane], to: [x1, z1 + lane], ang: Math.PI / 2 },
+  { from: [x1 - lane, z1], to: [x1 - lane, z0], ang: Math.PI },
+  { from: [x1 - lane, z0 - lane], to: [x0, z0 - lane], ang: -Math.PI / 2 },
+ ];
+ const e = edges[tr.edge];
+ const len = Math.hypot(e.to[0] - e.from[0], e.to[1] - e.from[1]);
+ const want = car.wrecked ? 0 : tr.speedMax * powerFactor(car.dur);
+ car.speed += Math.sign(want - car.speed) * Math.min(Math.abs(want - car.speed), 8 * dt);
+ tr.dist += car.speed * dt;
+ if (tr.dist >= len) { tr.dist = 0; tr.edge = (tr.edge + 1) % 4; }
+ const f = len > 0 ? tr.dist / len : 0;
+ car.x = e.from[0] + (e.to[0] - e.from[0]) * f;
+ car.z = e.from[1] + (e.to[1] - e.from[1]) * f;
+ car.angle = e.ang;
 }
 export function createFleet(G) {
-  G.cars = [];
-  seedTraffic(G);
-  const train = { t: 0, speed: 13, cars: [] };
-  const loco = new THREE.Group();
-  const locoBody = new THREE.Mesh(new THREE.BoxGeometry(3, 3.2, 11), std(0xb03a2e, 0.45, { metalness: 0.4 })); locoBody.position.y = 2; loco.add(locoBody);
-  const locoCab = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.6, 3), std(0x30343c, 0.4)); locoCab.position.set(0, 4.2, -3); loco.add(locoCab);
-  G.scene.add(loco); train.cars.push(loco);
-  for (let i = 0; i < 3; i++) {
-    const wag = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.6, 9), std([0x3c78d8, 0x63b06b, 0xf2b13c][i], 0.6));
-    wag.position.y = 1.8; const grp = new THREE.Group(); grp.add(wag); G.scene.add(grp); train.cars.push(grp);
+ G.cars = [];
+ seedTraffic(G);
+ const train = { t: 0, speed: 13, cars: [] };
+ const loco = new THREE.Group();
+ const locoBody = new THREE.Mesh(new THREE.BoxGeometry(3, 3.2, 11), std(0xb03a2e, 0.45, { metalness: 0.4 })); locoBody.position.y = 2; loco.add(locoBody);
+ const locoCab = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.6, 3), std(0x30343c, 0.4)); locoCab.position.set(0, 4.2, -3); loco.add(locoCab);
+ G.scene.add(loco); train.cars.push(loco);
+ for (let i = 0; i < 3; i++) {
+  const wag = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.6, 9), std([0x3c78d8, 0x63b06b, 0xf2b13c][i], 0.6));
+  wag.position.y = 1.8; const grp = new THREE.Group(); grp.add(wag); G.scene.add(grp); train.cars.push(grp);
+ }
+ G.train = train;
+ G.boats = [];
+ for (let i = 0; i < 3; i++) {
+  const hull = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1, 7 - i * 1.2), std(PALETTE[i * 2], 0.5));
+  const grp = new THREE.Group(); grp.add(hull);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 4, 6), std(0xdddddd, 0.5)); mast.position.y = 2.4; grp.add(mast);
+  G.scene.add(grp);
+  G.boats.push({ mesh: grp, phase: i * 2.1, r: 235 + i * 26, speed: 0.014 + i * 0.004, dur: createDurability({ hp: 80, mass: 900, explode: 40 }) });
+ }
+ const jet = new THREE.Group();
+ const jetBody = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.5, 2.6), std(0xf2572c, 0.4)); jetBody.position.y = 0.3; jet.add(jetBody);
+ G.scene.add(jet); G.jetski = { mesh: jet, phase: 0 };
+ function planeMesh(scale = 1, kind = 0) {
+  const grp = new THREE.Group();
+  const paintP = std(0xf2f2f2, 0.35), accent = std(0xe8762c, 0.4);
+  const fus = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 0.8, 11, 10), paintP); fus.rotation.x = Math.PI / 2; grp.add(fus);
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(1.08, 10, 8), paintP); nose.position.z = 5.4; grp.add(nose);
+  const band = new THREE.Mesh(new THREE.BoxGeometry(2.24, 0.38, 8.4), GLASS_D); band.position.set(0, 0.28, 0.3); grp.add(band);
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(11, 0.18, 2), std(0xd8d8d8, 0.4)); wing.position.z = 0.6; grp.add(wing);
+  const tail = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.16, 1.4), accent); tail.position.z = -5.2; grp.add(tail);
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.1, 1.5), accent); fin.position.set(0, 1.1, -5.1); grp.add(fin);
+  if (kind === 0) for (const sx of [-1, 1]) { const eng = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.9, 10), accent); eng.rotation.x = Math.PI / 2; eng.position.set(sx * 2.9, -0.75, 0.6); grp.add(eng); }
+  if (kind > 0) {
+   wing.position.y = 1.15;
+   const prop = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.6, 0.12), TRIM_D); prop.position.z = 6.05; grp.add(prop); grp.userData.prop = prop;
+   for (const sx of [-1, 1]) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.6, 6), paintP); st.position.set(sx * 1.9, 0.5, 0.8); st.rotation.z = sx * 0.75; grp.add(st); }
   }
-  G.train = train;
-  G.boats = [];
-  for (let i = 0; i < 3; i++) {
-    const hull = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1, 7 - i * 1.2), std(PALETTE[i * 2], 0.5));
-    const grp = new THREE.Group(); grp.add(hull);
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 4, 6), std(0xdddddd, 0.5)); mast.position.y = 2.4; grp.add(mast);
-    G.scene.add(grp);
-    G.boats.push({ mesh: grp, phase: i * 2.1, r: 235 + i * 26, speed: 0.014 + i * 0.004, dur: createDurability({ hp: 80, mass: 900, explode: 40 }) });
-  }
-  const jet = new THREE.Group();
-  const jetBody = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.5, 2.6), std(0xf2572c, 0.4)); jetBody.position.y = 0.3; jet.add(jetBody);
-  G.scene.add(jet); G.jetski = { mesh: jet, phase: 0 };
-  function planeMesh(scale = 1, kind = 0) {
-    const grp = new THREE.Group();
-    const paintP = std(0xf2f2f2, 0.35), accent = std(0xe8762c, 0.4);
-    const fus = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 0.8, 11, 10), paintP); fus.rotation.x = Math.PI / 2; grp.add(fus);
-    const nose = new THREE.Mesh(new THREE.SphereGeometry(1.08, 10, 8), paintP); nose.position.z = 5.4; grp.add(nose);
-    const band = new THREE.Mesh(new THREE.BoxGeometry(2.24, 0.38, 8.4), GLASS_D); band.position.set(0, 0.28, 0.3); grp.add(band);
-    const wing = new THREE.Mesh(new THREE.BoxGeometry(11, 0.18, 2), std(0xd8d8d8, 0.4)); wing.position.z = 0.6; grp.add(wing);
-    const tail = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.16, 1.4), accent); tail.position.z = -5.2; grp.add(tail);
-    const fin = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.1, 1.5), accent); fin.position.set(0, 1.1, -5.1); grp.add(fin);
-    if (kind === 0) for (const sx of [-1, 1]) { const eng = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.9, 10), accent); eng.rotation.x = Math.PI / 2; eng.position.set(sx * 2.9, -0.75, 0.6); grp.add(eng); }
-    if (kind > 0) {
-      wing.position.y = 1.15;
-      const prop = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.6, 0.12), TRIM_D); prop.position.z = 6.05; grp.add(prop); grp.userData.prop = prop;
-      for (const sx of [-1, 1]) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.6, 6), paintP); st.position.set(sx * 1.9, 0.5, 0.8); st.rotation.z = sx * 0.75; grp.add(st); }
+  if (kind === 2) for (const sx of [-1, 1]) { const fl = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.4, 6.4), accent); fl.position.set(sx * 1.3, -1.5, 0.2); grp.add(fl); }
+  grp.scale.setScalar(scale);
+  return grp;
+ }
+ const parkedPlane = planeMesh(1); parkedPlane.position.set(-196, groundY(-196, 88) + 2.2, 88); parkedPlane.rotation.y = 0.5; G.scene.add(parkedPlane);
+ const propPlane = planeMesh(0.55, 1); propPlane.position.set(-180, groundY(-180, 122) + 1.4, 122); propPlane.rotation.y = 0.9; G.scene.add(propPlane);
+ const seaPlane = planeMesh(0.6, 2); seaPlane.position.set(95, WATER_Y + 0.95, shoreZ(95) + 12); seaPlane.rotation.y = -0.7; G.scene.add(seaPlane);
+ G.propPlanes = [propPlane, seaPlane];
+ G.skyPlane = { mesh: planeMesh(0.8), phase: 0 };
+ G.scene.add(G.skyPlane.mesh);
+ return {
+  update(dt) {
+   for (const car of G.cars) {
+    tickDurability(car.dur, dt);
+    if (car.traffic && !car.wrecked) trafficStep(G, car, dt);
+    if (car.traffic || car === G.player.car) {
+     car.mesh.position.set(car.x, groundY(car.x, car.z), car.z);
+     car.mesh.rotation.y = car.angle;
     }
-    if (kind === 2) for (const sx of [-1, 1]) { const fl = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.4, 6.4), accent); fl.position.set(sx * 1.3, -1.5, 0.2); grp.add(fl); }
-    grp.scale.setScalar(scale);
-    return grp;
-  }
-  const parkedPlane = planeMesh(1); parkedPlane.position.set(-196, groundY(-196, 88) + 2.2, 88); parkedPlane.rotation.y = 0.5; G.scene.add(parkedPlane);
-  const propPlane = planeMesh(0.55, 1); propPlane.position.set(-180, groundY(-180, 122) + 1.4, 122); propPlane.rotation.y = 0.9; G.scene.add(propPlane);
-  const seaPlane = planeMesh(0.6, 2); seaPlane.position.set(95, WATER_Y + 0.95, shoreZ(95) + 12); seaPlane.rotation.y = -0.7; G.scene.add(seaPlane);
-  G.propPlanes = [propPlane, seaPlane];
-  G.skyPlane = { mesh: planeMesh(0.8), phase: 0 };
-  G.scene.add(G.skyPlane.mesh);
-  return {
-    update(dt) {
-      for (const car of G.cars) {
-        tickDurability(car.dur, dt);
-        if (car.traffic && !car.wrecked) trafficStep(G, car, dt);
-        if (car.traffic || car === G.player.car) {
-          car.mesh.position.set(car.x, groundY(car.x, car.z), car.z);
-          car.mesh.rotation.y = car.angle;
-        }
-        for (const w of car.wheels) w.rotation.x += (car.speed * dt) / 0.36;
-        const st = car.dur.state, p = car.mesh.position;
-        if (st === 'MODERATE' || st === 'CRITICAL') {
-          car.smokeT -= dt;
-          if (car.smokeT <= 0) { G.fx.smoke(p.x, p.y + 1.1, p.z, st === 'CRITICAL'); car.smokeT = st === 'CRITICAL' ? 0.09 : 0.3; }
-        }
-        if (st === 'CRITICAL') {
-          car.fireT -= dt;
-          if (car.fireT <= 0) { G.fx.fire(p.x, p.y + 0.9, p.z, 2); car.fireT = 0.16; }
-        }
-        const lb = car.mesh.userData.lightbar;
-        if (lb) { const on = Math.floor(G.time * 3) % 2 === 0; lb.red.material.color.set(on ? 0xff2a20 : 0x661008); lb.blu.material.color.set(on ? 0x1133aa : 0x2255ff); }
-      }
-      const train = G.train; train.t = (train.t + (train.speed * dt) / 1500) % 1;
-      train.cars.forEach((grp, i) => {
-        const tt = (train.t - i * 0.011 + 1) % 1;
-        const p = G.trainCurve.getPointAt(tt), tan = G.trainCurve.getTangentAt(tt);
-        grp.position.set(p.x, groundY(p.x, p.z) + 0.3, p.z);
-        grp.rotation.y = Math.atan2(tan.x, tan.z);
-      });
-      const head = train.cars[0].position;
-      for (const car of G.cars) {
-        if (car.wrecked) continue;
-        const d = Math.hypot(car.mesh.position.x - head.x, car.mesh.position.z - head.z);
-        if (d < 5.2) damageCar(G, car, 99, 60000, { isTrain: true });
-      }
-      for (const b of G.boats) {
-        b.phase += dt * b.speed;
-        const x = Math.cos(b.phase) * b.r, z = 60 + Math.sin(b.phase) * b.r * 0.8;
-        b.mesh.position.set(x, WATER_Y + 0.15 + Math.sin(G.time * 1.3 + b.phase * 8) * 0.12, z);
-        b.mesh.rotation.y = -b.phase;
-      }
-      G.jetski.phase += dt * 0.11;
-      const jx = Math.cos(G.jetski.phase) * 60 + 40, jz = shoreZ(jx) + 22 + Math.sin(G.jetski.phase * 3) * 6;
-      G.jetski.mesh.position.set(jx, WATER_Y + 0.1, jz);
-      G.jetski.mesh.rotation.y = -G.jetski.phase + Math.PI / 2;
-      G.skyPlane.phase += dt * 0.02;
-      const px = Math.cos(G.skyPlane.phase) * 260, pz = Math.sin(G.skyPlane.phase) * 260;
-      G.skyPlane.mesh.position.set(px, 85, pz);
-      G.skyPlane.mesh.rotation.y = -G.skyPlane.phase;
-      for (const pm of G.propPlanes) if (pm.userData.prop) pm.userData.prop.rotation.z += dt * 9;
-    },
-  };
+    for (const w of car.wheels) w.rotation.x += (car.speed * dt) / 0.36;
+    const st = car.dur.state, p = car.mesh.position;
+    if (st === 'MODERATE' || st === 'CRITICAL') {
+     car.smokeT -= dt;
+     if (car.smokeT <= 0) { G.fx.smoke(p.x, p.y + 1.1, p.z, st === 'CRITICAL'); car.smokeT = st === 'CRITICAL' ? 0.09 : 0.3; }
+    }
+    if (st === 'CRITICAL') {
+     car.fireT -= dt;
+     if (car.fireT <= 0) { G.fx.fire(p.x, p.y + 0.9, p.z, 2); car.fireT = 0.16; }
+    }
+    const lb = car.mesh.userData.lightbar;
+    if (lb) { const on = Math.floor(G.time * 3) % 2 === 0; lb.red.material.color.set(on ? 0xff2a20 : 0x661008); lb.blu.material.color.set(on ? 0x1133aa : 0x2255ff); }
+   }
+   const train = G.train; train.t = (train.t + (train.speed * dt) / 1500) % 1;
+   train.cars.forEach((grp, i) => {
+    const tt = (train.t - i * 0.011 + 1) % 1;
+    const p = G.trainCurve.getPointAt(tt), tan = G.trainCurve.getTangentAt(tt);
+    grp.position.set(p.x, groundY(p.x, p.z) + 0.3, p.z);
+    grp.rotation.y = Math.atan2(tan.x, tan.z);
+   });
+   const head = train.cars[0].position;
+   for (const car of G.cars) {
+    if (car.wrecked) continue;
+    const d = Math.hypot(car.mesh.position.x - head.x, car.mesh.position.z - head.z);
+    if (d < 5.2) damageCar(G, car, 99, 60000, { isTrain: true });
+   }
+   for (const b of G.boats) {
+    b.phase += dt * b.speed;
+    const x = Math.cos(b.phase) * b.r, z = 60 + Math.sin(b.phase) * b.r * 0.8;
+    b.mesh.position.set(x, WATER_Y + 0.15 + Math.sin(G.time * 1.3 + b.phase * 8) * 0.12, z);
+    b.mesh.rotation.y = -b.phase;
+   }
+   G.jetski.phase += dt * 0.11;
+   const jx = Math.cos(G.jetski.phase) * 60 + 40, jz = shoreZ(jx) + 22 + Math.sin(G.jetski.phase * 3) * 6;
+   G.jetski.mesh.position.set(jx, WATER_Y + 0.1, jz);
+   G.jetski.mesh.rotation.y = -G.jetski.phase + Math.PI / 2;
+   G.skyPlane.phase += dt * 0.02;
+   const px = Math.cos(G.skyPlane.phase) * 260, pz = Math.sin(G.skyPlane.phase) * 260;
+   G.skyPlane.mesh.position.set(px, 85, pz);
+   G.skyPlane.mesh.rotation.y = -G.skyPlane.phase;
+   for (const pm of G.propPlanes) if (pm.userData.prop) pm.userData.prop.rotation.z += dt * 9;
+  },
+ };
 }
 export { powerFactor };

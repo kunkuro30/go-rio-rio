@@ -1,4 +1,4 @@
-// HUD: brand, stars, cash, clock, bars, weapon + vehicle chips (with the
+
 import { PHASE_COLORS } from './durability.js';
 import { WEAPONS, districtAt, WORLD, SHOPS, DISTRICTS, shoreZ } from './config.js';
 const $ = (id) => document.getElementById(id);
@@ -154,7 +154,7 @@ export function renderPause(G, tab) {
       g.fillStyle = '#ffc93e'; g.beginPath(); g.arc(mx(s.x), my(s.z), 2.6, 0, 7); g.fill();
       g.strokeStyle = 'rgba(90,60,0,0.7)'; g.lineWidth = 0.8; g.stroke();
     });
-    if (G.beaconTarget) { // mission marker: gold diamond in a ring
+    if (G.beaconTarget) {
       const bx = mx(G.beaconTarget.x), by = my(G.beaconTarget.z);
       g.strokeStyle = '#ffd23e'; g.lineWidth = 2; g.beginPath(); g.arc(bx, by, 9, 0, 7); g.stroke();
       g.fillStyle = '#ffd23e'; g.beginPath(); g.moveTo(bx, by - 6); g.lineTo(bx + 6, by); g.lineTo(bx, by + 6); g.lineTo(bx - 6, by); g.closePath(); g.fill();
