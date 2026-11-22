@@ -1,5 +1,4 @@
 
-
 const THREE=window.THREE;
 export const FIGURE_HEIGHT = 1.78;
 const matCache=new Map();
@@ -26,7 +25,6 @@ const lower=seg(rL*0.8,rL,lowerLen,mLower);lower.position.y=-lowerLen/2;elbow.ad
 const end=ball(endR,mEnd);end.position.y=-lowerLen;elbow.add(end);
 return{joint:shoulder,elbow,end};
 }
-
 export function buildFigure(opts={}){
 const skin=mat(opts.skin ?? 0xd9a37e,0.65);
 const shirt=mat(opts.shirt ?? 0x3e6fb0,0.92);
@@ -50,11 +48,12 @@ if(opts.hat){const brim=seg(0.2,0.2,0.02,accent);brim.position.y=0.185;head.add(
 const eyeM=mat(0x14161c,0.3);
 for(const sx of [-1,1]){const eye=ball(0.016,eyeM);eye.position.set(sx*0.045,0.12,0.108);head.add(eye)}
 if(opts.glasses){const gl=new THREE.Mesh(new THREE.BoxGeometry(0.19,0.04,0.02),eyeM);gl.position.set(0,0.12,0.112);head.add(gl)}
-const armL=limb(spine,-0.21,0.5,0,0.3,0.28,0.055,0.045,shirt,skin,skin,0.045);
-const armR=limb(spine,0.21,0.5,0,0.3,0.28,0.055,0.045,shirt,skin,skin,0.045);
+if(opts.face){const dm=mat(0x8a4f3d,0.6);for(const sx of[-1,1]){const b=ball(0.018,hairM,0.35);b.scale.x=1.8;b.position.set(sx*0.045,0.168,0.11);head.add(b)}const ns=ball(0.02,skin);ns.position.set(0,0.088,0.116);head.add(ns);const mo=ball(0.015,dm,0.35);mo.scale.x=2;mo.position.set(0,0.03,0.107);head.add(mo);const st=ball(0.11,mat(0xc99068,0.75),0.6);st.position.set(0,0.04,0.022);head.add(st);const tu=ball(0.06,hairM,0.6);tu.position.set(0.035,0.215,0.03);head.add(tu)}
+const armM=opts.tank?skin:shirt;
+const armL=limb(spine,-0.21,0.5,0,0.3,0.28,0.055,0.045,armM,skin,skin,0.045);
+const armR=limb(spine,0.21,0.5,0,0.3,0.28,0.055,0.045,armM,skin,skin,0.045);
 const legL=limb(pelvis,-0.1,-0.02,0,0.44,0.44,0.075,0.055,pants,pants,shoes,0.055);
 const legR=limb(pelvis,0.1,-0.02,0,0.44,0.44,0.075,0.055,pants,pants,shoes,0.055);
-
 legL.end.position.z=0.05;legR.end.position.z=0.05;
 if(opts.dress){const skirt=seg(0.24,0.17,0.3,accent);skirt.position.y=-0.08;pelvis.add(skirt)}
 if(opts.apron){const ap=new THREE.Mesh(new THREE.BoxGeometry(0.26,0.4,0.02),mat(0xf4f1e6,0.95));ap.position.set(0,0.3,0.16);spine.add(ap)}
@@ -65,7 +64,6 @@ legL:legL.joint,legR:legR.joint,kneeL:legL.elbow,kneeR:legR.elbow,
 phase:Math.random()*6,recoil:0,height:FIGURE_HEIGHT,
 };
 root.traverse((o)=>{o.userData.partOfFigure=true});
-
 if(!buildFigure.blobMat){
 const c=document.createElement('canvas');c.width=c.height=64;
 const g=c.getContext('2d');
@@ -80,7 +78,6 @@ root.add(blob);
 fig.blob=blob;
 return fig;
 }
-
 export function poseFigure(fig,mode,dt,speed=0,aimPitch=0){
 fig.recoil=Math.max(0,fig.recoil-dt*6);
 const t=performance.now()*0.001;
@@ -112,7 +109,6 @@ fig.armL.rotation.z=0.08;fig.armR.rotation.z=-0.08;
 fig.elbowL.rotation.x=-0.25-sw*0.2;fig.elbowR.rotation.x=-0.25-sw*0.2;
 }
 if(mode==='aim'){
-
 const kick=fig.recoil*0.35;
 fig.armR.rotation.x=-1.35-aimPitch-kick;
 fig.armR.rotation.z=-0.12;
@@ -130,7 +126,6 @@ fig.group.rotation.x=-Math.PI/2+0.08;
 fig.group.rotation.x=0;
 }
 }
-
 export function figureBounds(){
 return{minX:-0.24,maxX:0.24,minY:0,maxY:FIGURE_HEIGHT,minZ:-0.16,maxZ:0.2};
 }
