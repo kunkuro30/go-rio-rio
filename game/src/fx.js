@@ -33,24 +33,24 @@ export function createFx(scene) {
   cTint.set(color); p.r = cTint.r; p.g = cTint.g; p.b = cTint.b;
  }
  const fx = {
-  sparks(x, y, z, n = 6) { for (let i = 0; i < n; i++) spawn(x, y, z, (Math.random() - 0.5) * 5, Math.random() * 4, (Math.random() - 0.5) * 5, 0.35, 0xffc95e); },
+  sparks(x, y, z, n = 6) { for (let i = 0; i < n; i++) spawn(x, y, z, (Math.random() - .5) * 5, Math.random() * 4, (Math.random() - .5) * 5, .35, 0xffc95e); },
   smoke(x, y, z, dark = false, big = false) {
-   spawn(x + (Math.random() - 0.5), y, z + (Math.random() - 0.5), 0.3, 1.6, 0.2, big ? 1.8 : 1.1, dark ? 0x2c2c30 : 0x9aa0a6, 0.6);
+   spawn(x + (Math.random() - .5), y, z + (Math.random() - .5), .3, 1.6, .2, big ? 1.8 : 1.1, dark ? 0x2c2c30 : 0x9aa0a6, .6);
   },
-  fire(x, y, z, n = 3) { for (let i = 0; i < n; i++) spawn(x + (Math.random() - 0.5) * 0.8, y + Math.random() * 0.4, z + (Math.random() - 0.5) * 0.8, 0, 2.4, 0, 0.5, Math.random() < 0.5 ? 0xff7b2e : 0xffc02e); },
+  fire(x, y, z, n = 3) { for (let i = 0; i < n; i++) spawn(x + (Math.random() - .5) * .8, y + Math.random() * .4, z + (Math.random() - .5) * .8, 0, 2.4, 0, .5, Math.random() < .5 ? 0xff7b2e : 0xffc02e); },
   explosion(x, y, z) {
-   for (let i = 0; i < 26; i++) spawn(x, y + 0.6, z, (Math.random() - 0.5) * 11, Math.random() * 8, (Math.random() - 0.5) * 11, 0.8, Math.random() < 0.6 ? 0xff8b2e : 0xffe08a);
+   for (let i = 0; i < 26; i++) spawn(x, y + .6, z, (Math.random() - .5) * 11, Math.random() * 8, (Math.random() - .5) * 11, .8, Math.random() < .6 ? 0xff8b2e : 0xffe08a);
    for (let i = 0; i < 10; i++) fx.smoke(x, y + 1, z, true, true);
-   spawn(x, y + 0.8, z, 0, 0.5, 0, 0.22, 0xfff6d8);
+   spawn(x, y + .8, z, 0, .5, 0, .22, 0xfff6d8);
   },
-  splash(x, y, z) { for (let i = 0; i < 8; i++) spawn(x, y, z, (Math.random() - 0.5) * 2.4, 2 + Math.random() * 2, (Math.random() - 0.5) * 2.4, 0.5, 0xbfeaff); },
-  muzzle(x, y, z) { spawn(x, y, z, 0, 0, 0, 0.07, 0xffd76a); },
+  splash(x, y, z) { for (let i = 0; i < 8; i++) spawn(x, y, z, (Math.random() - .5) * 2.4, 2 + Math.random() * 2, (Math.random() - .5) * 2.4, .5, 0xbfeaff); },
+  muzzle(x, y, z) { spawn(x, y, z, 0, 0, 0, .07, 0xffd76a); },
   update(dt) {
    for (let i = 0; i < MAX; i++) {
     const p = pool[i];
     if (p.life > 0) {
      p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
-     p.vy -= (p.grow ? -0.4 : 2.2) * dt;
+     p.vy -= (p.grow ? -.4 : 2.2) * dt;
      if (p.life <= 0) p.y = -99;
     }
     pos[i * 3] = p.x; pos[i * 3 + 1] = p.y; pos[i * 3 + 2] = p.z;

@@ -10,15 +10,15 @@ export const WORLD = {
  park: { x0: -32, x1: 32, z0: 48, z1: 112 },
  islandRadius: 305,
 };
-export const WATER_Y = 0.25;
+export const WATER_Y = .25;
 
 export function shoreZ(x) {
- return 198 + 12 * Math.sin(x * 0.02) + 6 * Math.sin(x * 0.05 + 1.3);
+ return 198 + 12 * Math.sin(x * .02) + 6 * Math.sin(x * .05 + 1.3);
 }
 export function groundY(x, z) {
  const s = shoreZ(x);
- if (z > s) return 0.4 - (z - s) * 0.085;
- let y = 0.8;
+ if (z > s) return .4 - (z - s) * .085;
+ let y = .8;
  const mx = x + 150, mz = z + 175;
  y += 30 * Math.exp(-(mx * mx + mz * mz) / 2200);
  const hx = x - 175, hz = z + 150;
@@ -32,28 +32,28 @@ export function isWater(x, z) {
  return z > shoreZ(x) - 2;
 }
 export const TUNING = {
- walk: 5.2, sprint: 8.6, swim: 3.1, playerRadius: 0.42,
+ walk: 5.2, sprint: 8.6, swim: 3.1, playerRadius: .42,
  heatMax: 500, starHeat: 100,
  heatDecay: [30, 45, 60, 75, 90],
 };
 export const CAR_TYPES = {
- sedan:  { len: 4.7, wid: 1.9, hgt: 1.45, accel: 15, max: 27, mass: 1300, hp: 120, explode: 34, seat: { x: -0.42, y: 0.4, z: 0.25 } },
- taxi:   { len: 4.7, wid: 1.9, hgt: 1.5,  accel: 15, max: 27, mass: 1320, hp: 120, explode: 34, seat: { x: -0.42, y: 0.4, z: 0.25 } },
- coupe:  { len: 4.4, wid: 1.85, hgt: 1.32, accel: 19, max: 34, mass: 1250, hp: 110, explode: 36, seat: { x: -0.4, y: 0.26, z: 0.2 } },
- sport:  { len: 4.5, wid: 1.95, hgt: 1.24, accel: 25, max: 43, mass: 1200, hp: 105, explode: 38, seat: { x: -0.4, y: 0.2, z: 0.15 } },
- van:    { len: 5.2, wid: 2.0, hgt: 2.0,  accel: 12, max: 23, mass: 1900, hp: 160, explode: 30, seat: { x: -0.45, y: 0.72, z: 0.9 } },
- truck:  { len: 6.4, wid: 2.2, hgt: 2.6,  accel: 10, max: 21, mass: 3200, hp: 200, explode: 28, seat: { x: -0.5, y: 1.0, z: 1.4 } },
- police: { len: 4.8, wid: 1.95, hgt: 1.5, accel: 21, max: 37, mass: 1450, hp: 150, explode: 36, seat: { x: -0.42, y: 0.4, z: 0.25 } },
- suv:    { len: 4.9, wid: 2.0, hgt: 1.78, accel: 14, max: 25, mass: 1750, hp: 150, explode: 32, seat: { x: -0.45, y: 0.55, z: 0.3 } },
- hatch:  { len: 4.1, wid: 1.8, hgt: 1.5,  accel: 16, max: 28, mass: 1150, hp: 110, explode: 34, seat: { x: -0.4, y: 0.4, z: 0.2 } },
- city:   { len: 3.6, wid: 1.7, hgt: 1.55, accel: 13, max: 24, mass: 950,  hp: 100, explode: 32, seat: { x: -0.38, y: 0.42, z: 0.15 } },
- roadster:{ len: 4.3, wid: 1.85, hgt: 1.18, accel: 23, max: 40, mass: 1100, hp: 100, explode: 36, seat: { x: -0.4, y: 0.16, z: 0.1 } },
- limo:   { len: 6.2, wid: 2.0, hgt: 1.52, accel: 12, max: 26, mass: 2100, hp: 170, explode: 30, seat: { x: -0.42, y: 0.4, z: 0.3 } },
- swat:   { len: 5.6, wid: 2.2, hgt: 2.3,  accel: 13, max: 26, mass: 3400, hp: 260, explode: 26, seat: { x: -0.5, y: 0.85, z: 0.9 } },
- moto:   { len: 2.2, wid: 0.7, hgt: 1.15, accel: 22, max: 36, mass: 220, hp: 60, explode: 30, seat: { x: 0, y: 0.72, z: -0.1 } },
+ sedan:  { len: 4.7, wid: 1.9, hgt: 1.45, accel: 15, max: 27, mass: 1300, hp: 120, explode: 34, seat: { x: -.42, y: .4, z: .25 } },
+ taxi:   { len: 4.7, wid: 1.9, hgt: 1.5,  accel: 15, max: 27, mass: 1320, hp: 120, explode: 34, seat: { x: -.42, y: .4, z: .25 } },
+ coupe:  { len: 4.4, wid: 1.85, hgt: 1.32, accel: 19, max: 34, mass: 1250, hp: 110, explode: 36, seat: { x: -.4, y: .26, z: .2 } },
+ sport:  { len: 4.5, wid: 1.95, hgt: 1.24, accel: 25, max: 43, mass: 1200, hp: 105, explode: 38, seat: { x: -.4, y: .2, z: .15 } },
+ van:    { len: 5.2, wid: 2.0, hgt: 2.0,  accel: 12, max: 23, mass: 1900, hp: 160, explode: 30, seat: { x: -.45, y: .72, z: .9 } },
+ truck:  { len: 6.4, wid: 2.2, hgt: 2.6,  accel: 10, max: 21, mass: 3200, hp: 200, explode: 28, seat: { x: -.5, y: 1.0, z: 1.4 } },
+ police: { len: 4.8, wid: 1.95, hgt: 1.5, accel: 21, max: 37, mass: 1450, hp: 150, explode: 36, seat: { x: -.42, y: .4, z: .25 } },
+ suv:    { len: 4.9, wid: 2.0, hgt: 1.78, accel: 14, max: 25, mass: 1750, hp: 150, explode: 32, seat: { x: -.45, y: .55, z: .3 } },
+ hatch:  { len: 4.1, wid: 1.8, hgt: 1.5,  accel: 16, max: 28, mass: 1150, hp: 110, explode: 34, seat: { x: -.4, y: .4, z: .2 } },
+ city:   { len: 3.6, wid: 1.7, hgt: 1.55, accel: 13, max: 24, mass: 950,  hp: 100, explode: 32, seat: { x: -.38, y: .42, z: .15 } },
+ roadster:{ len: 4.3, wid: 1.85, hgt: 1.18, accel: 23, max: 40, mass: 1100, hp: 100, explode: 36, seat: { x: -.4, y: .16, z: .1 } },
+ limo:   { len: 6.2, wid: 2.0, hgt: 1.52, accel: 12, max: 26, mass: 2100, hp: 170, explode: 30, seat: { x: -.42, y: .4, z: .3 } },
+ swat:   { len: 5.6, wid: 2.2, hgt: 2.3,  accel: 13, max: 26, mass: 3400, hp: 260, explode: 26, seat: { x: -.5, y: .85, z: .9 } },
+ moto:   { len: 2.2, wid: .7, hgt: 1.15, accel: 22, max: 36, mass: 220, hp: 60, explode: 30, seat: { x: 0, y: .72, z: -.1 } },
 };
 
-export const SEATED_BOX = { dx: 0.34, dz: 0.42, below: 0.1, above: 1.02 };
+export const SEATED_BOX = { dx: .34, dz: .42, below: .1, above: 1.02 };
 export const SHOPS = [
  { name: 'HARBOUR CATCH', sub: 'FRESH SEAFOOD • GRILL', kind: 'seafood', color: 0x2e5f7a, keeper: 0x9fd8e8, x: -104, z: 168 },
  { name: 'STACK SHACK',   sub: 'BURGERS • SHAKES',      kind: 'burger',  color: 0xb03024, keeper: 0xffc2a8, x: -78, z: 168 },
@@ -67,10 +67,10 @@ export const SHOPS = [
  { name: 'KAIYO SUSHI',   sub: 'FRESH FISH DAILY',      kind: 'sushi',   color: 0x2c3440, keeper: 0xffb8a8, x: 130, z: 168 },
 ];
 export const WEAPONS = {
- fists:  { name: 'FISTS',  dmg: 34, rate: 0.38, range: 2.3, mag: Infinity, reserve: Infinity, auto: false },
- pistol: { name: 'PISTOL', dmg: 50, rate: 0.32, range: 65, mag: 12, reserve: 96, auto: false, price: 0, rep: 0 },
- smg:    { name: 'SMG',    dmg: 26, rate: 0.09, range: 55, mag: 30, reserve: 240, auto: true, price: 900, rep: 2 },
- rifle:  { name: 'RIFLE',  dmg: 80, rate: 0.55, range: 95, mag: 20, reserve: 160, auto: false, price: 2200, rep: 4 },
+ fists:  { name: 'FISTS',  dmg: 34, rate: .38, range: 2.3, mag: Infinity, reserve: Infinity, auto: false },
+ pistol: { name: 'PISTOL', dmg: 50, rate: .32, range: 65, mag: 12, reserve: 96, auto: false, price: 0, rep: 0 },
+ smg:    { name: 'SMG',    dmg: 26, rate: .09, range: 55, mag: 30, reserve: 240, auto: true, price: 900, rep: 2 },
+ rifle:  { name: 'RIFLE',  dmg: 80, rate: .55, range: 95, mag: 20, reserve: 160, auto: false, price: 2200, rep: 4 },
 };
 export const DISTRICTS = [
  { name: 'DOWNTOWN', x: 0, z: 60 }, { name: 'OCEAN DRIVE', x: 0, z: 160 },

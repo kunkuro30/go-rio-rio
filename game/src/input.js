@@ -2,7 +2,7 @@
 export function createInput(canvas) {
  const keys = {};
  const input = {
-  keys, yaw: Math.PI, pitch: -0.08, aiming: false, firing: false,
+  keys, yaw: Math.PI, pitch: -.08, aiming: false, firing: false,
   locked: false, wheel: 0, mouseDX: 0,
   down(code) { return !!keys[code]; },
   pressed: {},
@@ -26,8 +26,8 @@ export function createInput(canvas) {
  window.addEventListener('contextmenu', (e) => e.preventDefault());
  window.addEventListener('mousemove', (e) => {
   if (!input.locked) return;
-  input.yaw -= e.movementX * 0.0026;
-  input.pitch -= e.movementY * 0.0022;
+  input.yaw -= e.movementX * .0026;
+  input.pitch -= e.movementY * .0022;
   input.pitch = Math.max(-1.1, Math.min(1.1, input.pitch));
   input.mouseDX = e.movementX;
  });

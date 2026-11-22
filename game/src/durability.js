@@ -5,9 +5,9 @@ export const PHASE_COLORS = { NORMAL: '#37d67a', LIGHT: '#ffd23e', MODERATE: '#f
 export function phaseOf(d) {
  if (!d || d.hp <= 0 || d.exploded) return 'EXPLODED';
  const f = d.hp / d.maxHp;
- if (f > 0.75) return 'NORMAL';
- if (f > 0.5) return 'LIGHT';
- if (f > 0.25) return 'MODERATE';
+ if (f > .75) return 'NORMAL';
+ if (f > .5) return 'LIGHT';
+ if (f > .25) return 'MODERATE';
  return 'CRITICAL';
 }
 export function createDurability(spec) {
@@ -30,14 +30,14 @@ export function applyImpact(d, relSpeed, otherMass, opts = {}) {
  if (d.impactCooldown > 0) return 0;
  if (relSpeed >= d.instantExplodeSpeed) {
   d.hp = 0; d.exploded = true; d.state = 'EXPLODED';
-  d.impactCooldown = 0.25;
+  d.impactCooldown = .25;
   return d.maxHp;
  }
  const share = otherMass / (otherMass + d.mass);
  const dmg = Math.max(0, (relSpeed - 3)) * 2.4 * share;
  if (dmg <= 0) return 0;
  d.hp = Math.max(0, d.hp - dmg);
- d.impactCooldown = 0.25;
+ d.impactCooldown = .25;
  if (d.hp <= 0) d.exploded = true;
  d.state = phaseOf(d);
  return dmg;
@@ -48,8 +48,8 @@ export function tickDurability(d, dt) {
 
 export function powerFactor(d) {
  const s = d ? d.state : 'NORMAL';
- if (s === 'CRITICAL') return 0.55;
- if (s === 'MODERATE') return 0.8;
+ if (s === 'CRITICAL') return .55;
+ if (s === 'MODERATE') return .8;
  if (s === 'EXPLODED') return 0;
  return 1;
 }
