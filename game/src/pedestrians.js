@@ -6,7 +6,6 @@ const HAIRS=[0x2a1d12,0x14100c,0x4a3018,0x8a6a48,0xd8b13c,0xd8d8d8,0xb03a2e];
 const CLOTH=[0xd8342c,0x3c78d8,0xf2b13c,0x63b06b,0xf2f0e8,0x9a5fc0,0x2ea8a0,0xe87fa8,0x23232e,0x2b3a55,0x6e5136,0xc9b083,0xe8862e,0x7fd4c9,0xb8e62e,0x8a9a5b,0x4a5568,0x3a3f4a];
 const FL=['cap','dress','apron','hat','glasses','bald','longHair'];
 const NAMES='Lifeguard,Surfer,Tourist,Snapper,Exec,Suit,Chef,Grandma,Grandpa,Skater,Jogger,Fisher,Vendor,Keeper,Student,Gangster,Nurse,Doctor,Fireman,Beachgirl,Muscle,Waiter,Mechanic,Painter,Yogi,Builder,Sailor,Hipster,Courier,Kid'.split(',');
-// CAST->SKINS/HAIRS/CLOTH;flags 1cap 2dress 4apron 8hat 16glasses 32bald 64longHair 128kid
 const CAST=[
 [1,4,0,0,4,1],[0,4,6,2,11,64],[3,3,7,11,4,17],[2,1,12,3,10,8],[3,1,8,8,8,66],
 [0,0,9,8,8,0],[1,0,4,17,8,5],[3,5,5,5,10,2],[0,5,15,10,10,48],[1,1,8,1,0,1],
@@ -32,7 +31,7 @@ const rng=G.rng;
 G.peds=[];
 function bag(pool){
 let q=[];
-return () =>{
+return()=>{
 if(!q.length){
 q=pool.slice();
 for(let i=q.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const t=q[i];q[i]=q[j];q[j]=t}
@@ -43,7 +42,7 @@ return q.pop();
 const beach=bag(BEACH),swim=bag(SWIM),keeps=bag(KEEPS),shop=bag(SHOP),town=bag(TOWN),park=bag(PARK);
 function addPed(x,z,role,mode='walk',arch=0){
 const fig=buildFigure(outfit(arch));
-if(CAST[arch][5] & 128) fig.group.scale.setScalar(0.76);
+if(CAST[arch][5]&128) fig.group.scale.setScalar(0.76);
 fig.group.position.set(x,groundY(x,z),z);
 fig.group.rotation.y=range(rng,0,Math.PI*2);
 G.scene.add(fig.group);
@@ -64,7 +63,7 @@ const [x,z]=pick(rng,walkSpots);
 addPed(x+range(rng,-3,3),z+range(rng,-3,3),'citizen','walk',town());
 }
 for(let i=0;i<14;i++){
-const s=SHOPS[i % SHOPS.length];
+const s=SHOPS[i%SHOPS.length];
 addPed(s.x,s.z+4,'shopper','shop',shop());
 }
 for(let i=0;i<20;i++) addPed(range(rng,-130,130),range(rng,140,165),'citizen','walk',park());
@@ -89,10 +88,10 @@ G.swimmers.push({fig,x,z,phase:range(rng,0,6),arch:ai,archName:NAMES[ai]});
 }
 function newTarget(ped){
 if(ped.mode==='shop'){
-ped.shopIdx=(ped.shopIdx+1+Math.floor(range(rng,0,3))) % SHOPS.length;
+ped.shopIdx=(ped.shopIdx+1+Math.floor(range(rng,0,3)))%SHOPS.length;
 const s=SHOPS[ped.shopIdx];
 ped.tx=s.x+range(rng,-4,4);ped.tz=s.z+4;
-} else{
+}else{
 const [x,z]=pick(rng,walkSpots);
 ped.tx=x+range(rng,-4,4);ped.tz=z+range(rng,-4,4);
 if(rng()<0.25){ped.tx=range(rng,-130,130);ped.tz=range(rng,140,164)}
@@ -102,12 +101,12 @@ return{
 update(dt){
 for(const ped of G.peds){
 const f=ped.fig;
-if(ped.down>0){ped.down-=dt;f.blob.visible=false;poseFigure(f,'down',dt);if(ped.down<=0){ped.hp=60;f.group.rotation.x=0;f.blob.visible=true} continue}
+if(ped.down>0){ped.down-=dt;f.blob.visible=false;poseFigure(f,'down',dt);if(ped.down<=0){ped.hp=60;f.group.rotation.x=0;f.blob.visible=true}continue}
 if(ped.mode==='stand'){poseFigure(f,'idle',dt);continue}
 if(ped.mode==='lie') continue;
 if(ped.wait>0){ped.wait-=dt;poseFigure(f,'idle',dt);continue}
 const dx=ped.tx-ped.x,dz=ped.tz-ped.z,d=Math.hypot(dx,dz);
-if(d<1.2){ped.wait=ped.mode==='shop'?range(rng,2,5) :range(rng,0.4,2);newTarget(ped);continue}
+if(d<1.2){ped.wait=ped.mode==='shop'?range(rng,2,5):range(rng,0.4,2);newTarget(ped);continue}
 const vx=(dx/d)*ped.speed,vz=(dz/d)*ped.speed;
 ped.x+=vx*dt;ped.z+=vz*dt;
 f.group.position.set(ped.x,groundY(ped.x,ped.z),ped.z);

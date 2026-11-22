@@ -44,7 +44,7 @@ const neck=new THREE.Group();neck.position.y=0.56;spine.add(neck);
 const neckM=seg(0.05,0.055,0.09,skin);neckM.position.y=0.03;neck.add(neckM);
 const head=new THREE.Group();head.position.y=0.1;neck.add(head);
 const skull=ball(0.118,skin,1.08);skull.position.y=0.115;head.add(skull);
-if(!opts.bald){const hair=ball(0.121,hairM,opts.longHair?1.32 :0.92);hair.position.set(0,opts.longHair?0.115 :0.155,-0.012);head.add(hair)}
+if(!opts.bald){const hair=ball(0.121,hairM,opts.longHair?1.32:0.92);hair.position.set(0,opts.longHair?0.115:0.155,-0.012);head.add(hair)}
 if(opts.cap){const cap=seg(0.125,0.128,0.05,accent);cap.position.y=0.185;head.add(cap);const brim=seg(0.02,0.09,0.02,accent);brim.position.set(0,0.165,0.13);brim.scale.z=0.6;head.add(brim)}
 if(opts.hat){const brim=seg(0.2,0.2,0.02,accent);brim.position.y=0.185;head.add(brim);const dome=ball(0.115,accent,0.72);dome.position.y=0.2;head.add(dome)}
 const eyeM=mat(0x14161c,0.3);
@@ -62,7 +62,7 @@ const fig={
 group:root,pelvis,spine,neck,head,
 armL:armL.joint,armR:armR.joint,elbowL:armL.elbow,elbowR:armR.elbow,
 legL:legL.joint,legR:legR.joint,kneeL:legL.elbow,kneeR:legR.elbow,
-  phase: Math.random() * 6, recoil: 0, height: FIGURE_HEIGHT,
+phase:Math.random()*6,recoil:0,height:FIGURE_HEIGHT,
 };
 root.traverse((o)=>{o.userData.partOfFigure=true});
 
@@ -84,7 +84,7 @@ return fig;
 export function poseFigure(fig,mode,dt,speed=0,aimPitch=0){
 fig.recoil=Math.max(0,fig.recoil-dt*6);
 const t=performance.now()*0.001;
-const sw=mode==='walk'?Math.min(1,speed/5) :0;
+const sw=mode==='walk'?Math.min(1,speed/5):0;
 if(mode==='walk') fig.phase+=dt*(4+speed*1.35);
 const s=Math.sin(fig.phase),c=Math.cos(fig.phase);
 const setLimb=(leg,knee,v,kv)=>{leg.rotation.x=v;knee.rotation.x=kv};
@@ -95,7 +95,7 @@ fig.elbowL.rotation.x=-0.4;fig.elbowR.rotation.x=-0.4;
 fig.pelvis.position.y=0.55;
 return;
 }
-fig.pelvis.position.y=0.98+(mode==='walk'?Math.abs(c)*0.045*sw :Math.sin(t*1.7)*0.008);
+fig.pelvis.position.y=0.98+(mode==='walk'?Math.abs(c)*0.045*sw:Math.sin(t*1.7)*0.008);
 if(mode==='swim'){
 setLimb(fig.legL,fig.kneeL,s*0.6,0.5);setLimb(fig.legR,fig.kneeR,-s*0.6,0.5);
 fig.armL.rotation.x=c*0.9-0.4;fig.armR.rotation.x=-c*0.9-0.4;
@@ -103,7 +103,7 @@ fig.elbowL.rotation.x=-0.5;fig.elbowR.rotation.x=-0.5;
 fig.spine.rotation.x=0.5;
 return;
 }
-fig.spine.rotation.x=mode==='aim'?0.06 :0;
+fig.spine.rotation.x=mode==='aim'?0.06:0;
 if(mode==='walk'||mode==='idle'){
 setLimb(fig.legL,fig.kneeL,s*0.62*sw,Math.max(0,-s)*0.7*sw);
 setLimb(fig.legR,fig.kneeR,-s*0.62*sw,Math.max(0,s)*0.7*sw);
@@ -129,4 +129,8 @@ fig.group.rotation.x=-Math.PI/2+0.08;
 }else if(fig.group.rotation.x!==0){
 fig.group.rotation.x=0;
 }
+}
+
+export function figureBounds(){
+return{minX:-0.24,maxX:0.24,minY:0,maxY:FIGURE_HEIGHT,minZ:-0.16,maxZ:0.2};
 }
